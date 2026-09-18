@@ -718,6 +718,94 @@ job_t deque(queue_t *ptr_queue) {
       correctAnswer: 'C then A',
       explanation: 'C has highest priority (10) so it is first. A and B tie at 5, but A joined earlier, so FIFO rules prioritize A over B.',
       tags: ['trace']
+    },
+    {
+      id: 'u2-t3-q13',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'Unordered list PQ (lower value = higher priority). Insert (priority=5,A), (priority=2,B), (priority=8,C), (priority=2,D) in that order. Ties broken by FIFO. removeMin() called twice. Which labels are removed in order?',
+      options: ['A then C', 'B then D', 'D then B', 'B then A'],
+      correctAnswer: 'B then D',
+      explanation: 'B and D both have the lowest priority value (2). B was inserted before D, so FIFO gives B first, then D. Answer: B then D.',
+      tags: ['Priority-Queue', 'FIFO-Ties']
+    },
+    {
+      id: 'u2-t3-q14',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'Unordered list PQ with both head and tail. If jobs have the same priority, the one that joined earlier dequeues first. Which job should be dequeued?',
+      options: ['The one nearest to the front with the highest priority', 'The one farthest from the front with the highest priority', 'Any node with the highest priority', 'No two jobs can have the same priority'],
+      correctAnswer: 'The one nearest to the front with the highest priority',
+      explanation: 'In an unordered list, scanning from front (head) to back finds the earliest-inserted highest-priority job first. This correctly implements FIFO tie-breaking.',
+      tags: ['Priority-Queue', 'FIFO-Ties']
+    },
+    {
+      id: 'u2-t3-q15',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'advanced',
+      question: 'Ordered array PQ: dequeue from the end (not beginning) for efficiency. Jobs with same priority must dequeue in FIFO order. Where should a new job be enqueued?',
+      options: ['At the end; requires only a few operations', 'At the beginning; may require shifting', 'To the RIGHT of jobs with the same priority', 'To the LEFT of jobs with the same priority'],
+      correctAnswer: 'To the RIGHT of jobs with the same priority',
+      explanation: 'If we dequeue from the right end (highest priority), then among equal-priority jobs the one to the RIGHT dequeues first. To maintain FIFO, a new job with priority P must go to the RIGHT of existing priority-P jobs (so older jobs dequeue before it).',
+      tags: ['Ordered-Array-PQ', 'FIFO-Ties']
+    },
+    {
+      id: 'u2-t3-q16',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'beginner',
+      question: 'When two elements in a priority queue have the same priority, which principle is used to decide the order?',
+      options: ['LIFO', 'FIFO', 'Random', 'Reverse ordering'],
+      correctAnswer: 'FIFO',
+      explanation: 'FIFO (First In, First Out): among equal-priority elements, the one that was inserted earlier is served first. This is the standard tie-breaking convention for priority queues.',
+      tags: ['Priority-Queue', 'FIFO']
+    },
+    {
+      id: 'u2-t3-q17',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'When implementing a priority queue using an UNORDERED list, which operation is inefficient?',
+      options: ['Enqueue — requires traversal to find the end', 'Dequeue — must scan all elements to find highest priority', 'Initialize — must allocate memory for all priorities', 'is_empty — must scan all elements'],
+      correctAnswer: 'Dequeue — must scan all elements to find highest priority',
+      explanation: 'In an unordered list, enqueue is O(1) (insert at front or rear). But dequeue must scan all n elements to find the highest-priority element: O(n). This is the trade-off of unordered implementation.',
+      tags: ['Unordered-List-PQ', 'Complexity']
+    },
+    {
+      id: 'u2-t3-q18',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'Higher value = higher priority. 4 jobs were serviced in order: A, D, B, C. Each has a distinct priority (1 to 4). What are their priorities?',
+      options: ['A=4, B=2, C=1, D=3', 'A=1, B=3, C=4, D=2', 'A=1, B=2, C=3, D=4', 'Cannot be determined'],
+      correctAnswer: 'A=4, B=2, C=1, D=3',
+      explanation: 'Serviced order = descending priority order. A first = highest priority = 4. D second = 3. B third = 2. C last = lowest = 1. So A=4, D=3, B=2, C=1.',
+      tags: ['Priority-Queue', 'Reasoning']
+    },
+    {
+      id: 'u2-t3-q19',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'Which representation maintains elements by priority such that deletion of the highest-priority element is O(1) from one end?',
+      options: ['Unordered list', 'Ordered list', 'Unordered array', 'Simple FIFO queue'],
+      correctAnswer: 'Ordered list',
+      explanation: 'In an ordered list, elements are kept sorted by priority. The highest-priority element is always at one end (front or rear), so deletion is O(1). The cost is paid at insertion: O(n) to find the correct position.',
+      tags: ['Ordered-List-PQ', 'Complexity']
+    },
+    {
+      id: 'u2-t3-q20',
+      type: 'predict-output',
+      topicId: 'u2-t3',
+      difficulty: 'advanced',
+      question: 'PQ elements: A(priority=2), B(priority=4), C(priority=1), D(priority=4). Inserted in order A, B, C, D. Higher value = higher priority. FIFO for ties. What is the deletion order?',
+      options: ['B, D, A, C', 'D, B, A, C', 'B, A, D, C', 'D, A, B, C'],
+      correctAnswer: 'B, D, A, C',
+      explanation: 'B and D both have priority 4. B was inserted first, so FIFO gives B before D. After removing B and D, A has priority 2, C has priority 1. So order is B, D, A, C.',
+      tags: ['Priority-Queue', 'FIFO-Ties', 'Trace']
     }
   ],
   programmingProblems: [

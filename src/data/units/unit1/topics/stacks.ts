@@ -914,17 +914,6 @@ This is the correct Prefix notation!
   ],
   theoryQuestions: [
     {
-      id: 'u1-t6-q99',
-      type: 'mcq',
-      topicId: 'u1-t6',
-      difficulty: 'advanced',
-      question: 'Which of the following string patterns can be recognized using a single stack?',
-      options: ['a^n b^n c^n', 'a^n b^2n', 'ww', 'None of the above'],
-      correctAnswer: 'a^n b^2n',
-      explanation: 'A stack can be used to count and match characters. For every \'a\', we can push two tokens onto the stack, and for every \'b\', we pop one token. If the stack is empty at the end, it matches a^n b^2n.',
-      tags: ['applications', 'recognition']
-    },
-    {
       id: 'u1-t6-q1',
       type: 'mcq',
       topicId: 'u1-t6',
@@ -1053,6 +1042,72 @@ This is the correct Prefix notation!
       correctAnswer: 'call',
       explanation: 'The call stack (or execution stack) is fundamental to managing function calls and simulating recursion in modern computing architectures.',
       tags: ['system']
+    },
+    {
+      id: 'u1-t6-q13',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'beginner',
+      question: 'A stack is a data structure that does NOT support which of the following?',
+      options: ['push', 'pop', 'is_empty', 'indexing'],
+      correctAnswer: 'indexing',
+      explanation: 'Stacks are restricted-access structures: only the top element can be accessed via push/pop/peek. Indexing (accessing the 3rd or kth element directly) is not supported. This is a fundamental property that distinguishes stacks from arrays.',
+      tags: ['ADT', 'Operations']
+    },
+    {
+      id: 'u1-t6-q14',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'A string is of the form wcw^R, where w is a string without c and w^R is the reverse of w (so it is a palindrome). To check for this, the stack size must be at least:',
+      options: ['The length of w', 'The length of wcw^R', 'The length of wc', 'None of these'],
+      correctAnswer: 'The length of w',
+      explanation: 'The algorithm pushes characters until it sees the centre marker c, then pops and compares with the remaining characters. The maximum stack depth equals the length of w (the first half), never more.',
+      tags: ['Application', 'Palindrome']
+    },
+    {
+      id: 'u1-t6-q15',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'To check whether a string is of the form a^n b^(2n) (n a-characters followed by twice as many b-characters), each time we encounter an a we should:',
+      options: ['Push one symbol into the stack', 'Push 2 symbols into the stack', 'Pop a symbol from the stack', 'None of these'],
+      correctAnswer: 'Push one symbol into the stack',
+      explanation: 'Strategy: push 1 symbol per a, pop 1 symbol per b. After processing all characters, the stack should be empty if and only if there were exactly 2n b-characters for n a-characters. Pushing 2 per a would require 4n b-characters, not 2n.',
+      tags: ['Application', 'Formal-Languages']
+    },
+    {
+      id: 'u1-t6-q16',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'In an array implementation of a stack, how should push work?',
+      options: ['Increment top first, then use it as the index', 'Use top as the index, then increment top', 'Use top without changing it', 'None of these'],
+      correctAnswer: 'Increment top first, then use it as the index',
+      explanation: 'Convention: top points to the current top element. To push: first do ++top (to find the new empty slot), then store the element at key[top]. If top started at -1 (empty), after push top=0 and key[0] holds the new element.',
+      tags: ['Array-Stack', 'Implementation']
+    },
+    {
+      id: 'u1-t6-q17',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'In an array implementation of the stack, if is_full returns true during a push attempt:',
+      options: ['The program should be aborted', 'The top element should be popped', 'The stack should be reset', 'The user (caller) should decide what the best action is'],
+      correctAnswer: 'The user (caller) should decide what the best action is',
+      explanation: 'Stack overflow handling is application-specific. The stack ADT only detects the overflow condition and signals it (e.g., returns false or calls an error handler). What to do about it is the caller\'s responsibility, not the stack implementation\'s.',
+      tags: ['Overflow', 'ADT-Design']
+    },
+    {
+      id: 'u1-t6-q18',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'How does the algorithm detect that the string (())) is NOT well-formed?',
+      options: ['By counting and comparing total left vs right parentheses', 'By encountering a pop from an empty stack', 'By having a non-empty stack after the full input is processed', 'None of these'],
+      correctAnswer: 'By encountering a pop from an empty stack',
+      explanation: '(())) has a surplus right parenthesis. When we reach the 4th ), we attempt to pop from the stack but it is already empty \u2014 this signals a mismatch. Option c catches the case of surplus left parentheses (e.g., ((()). Both mechanisms are needed for complete validation.',
+      tags: ['Bracket-Matching', 'Application']
     }
   ],
   programmingProblems: [

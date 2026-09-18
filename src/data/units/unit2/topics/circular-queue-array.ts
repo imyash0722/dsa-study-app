@@ -439,17 +439,6 @@ int main()
   ],
   theoryQuestions: [
     {
-      id: 'u2-t2-q99',
-      type: 'mcq',
-      topicId: 'u2-t2',
-      difficulty: 'advanced',
-      question: 'If a circular queue has MAXSIZE = 8 and currently front = 7 and rear = 2, how many elements are in the queue? (Assume front points to one slot before the first element)',
-      options: ['3', '4', '5', '6'],
-      correctAnswer: '3',
-      explanation: 'The elements are at indices 0, 1, and 2. Thus, there are 3 elements.',
-      tags: ['capacity', 'boundary-case']
-    },
-    {
       id: 'u2-t2-q1',
       type: 'mcq',
       topicId: 'u2-t2',
@@ -582,6 +571,127 @@ deque(&q);`,
       correctAnswer: '(front_ + 1) % MAXSIZE',
       explanation: 'Because of the circular wrap-around, you must add 1 and apply modulo to find the actual first element.',
       tags: ['design']
+    },
+    {
+      id: 'u2-t2-q11',
+      type: 'predict-output',
+      topicId: 'u2-t2',
+      difficulty: 'advanced',
+      question: 'Circular array queue size=5. front=first element, rear=next insert position. Empty: front==rear. Full: (rear+1)%5==front. Initially front=rear=0. Perform: ENQUEUE(10), ENQUEUE(20), ENQUEUE(30), DEQUEUE(), ENQUEUE(40), ENQUEUE(50). Which is TRUE?',
+      options: ['Queue contains 10,20,30,40,50', 'Queue contains 20,30,40,50 and is full', 'Queue contains 20,30,40 and one insertion still possible', 'Queue becomes full immediately after ENQUEUE(40)'],
+      correctAnswer: 'Queue contains 20,30,40,50 and is full',
+      explanation: 'Trace: ENQUEUE(10,20,30) -> rear=3. DEQUEUE() -> front=1. ENQUEUE(40) -> rear=4. ENQUEUE(50) -> rear=0. Now (0+1)%5=1=front -> FULL. Queue holds {20,30,40,50}.',
+      tags: ['Trace', 'Circular-Queue']
+    },
+    {
+      id: 'u2-t2-q12',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'intermediate',
+      question: 'Does a dequeue operation ever change the rear pointer?',
+      options: ['Always changes rear', 'Might change rear', 'Never changes rear', 'None of these'],
+      correctAnswer: 'Might change rear',
+      explanation: 'In most implementations rear does not change on dequeue. But in some implementations, when dequeue empties the queue, both front and rear are reset (e.g., to 0 or -1). So rear MIGHT change.',
+      tags: ['Dequeue', 'Rear-Pointer']
+    },
+    {
+      id: 'u2-t2-q13',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'beginner',
+      question: 'Circular queue using array of size 5. front=rear=0. One slot always kept empty (wasted). Maximum number of elements storable?',
+      options: ['5', '4', '3', 'Depends on initial front value'],
+      correctAnswer: '4',
+      explanation: 'One slot is sacrificed to distinguish full from empty (full: (rear+1)%N==front). Therefore max storable elements = N-1 = 5-1 = 4.',
+      tags: ['Circular-Queue', 'Capacity']
+    },
+    {
+      id: 'u2-t2-q14',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'intermediate',
+      question: 'Simple (non-circular) linear queue, front=2, rear=5, array size=6. After two dequeues, what problem occurs even though unused positions exist at the beginning?',
+      options: ['Next enqueue will go at index 0', 'Next enqueue will signal overflow', 'Next dequeue will signal empty', 'Next enqueue depends on front value'],
+      correctAnswer: 'Next enqueue will signal overflow',
+      explanation: 'In a linear non-circular queue, the condition is `rear == MAX-1`. After two dequeues, front=4 but rear is still 5 (==MAX-1). The queue signals overflow even though indices 0-3 are free. This is the false-overflow problem that circular queues solve.',
+      tags: ['Linear-Queue', 'False-Overflow']
+    },
+    {
+      id: 'u2-t2-q15',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'intermediate',
+      question: 'If both front and rear pointers of a linked-list queue are equal, what does this imply?',
+      options: ['Queue is definitely empty', 'Queue definitely has exactly one node', 'Either empty queue or one-node queue', 'Queue is full'],
+      correctAnswer: 'Either empty queue or one-node queue',
+      explanation: 'When front==rear: if both are NULL, the queue is empty. If both point to the same node, the queue has exactly one element. Both cases are valid, so front==rear implies EITHER empty OR one-node queue.',
+      tags: ['Front-Rear', 'Edge-Case']
+    },
+    {
+      id: 'u2-t2-q16',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'beginner',
+      question: 'In a circular queue, `temp = (ptr_queue->rear_ + 1) % MAXSIZE;` \u2014 the modulo operation is primarily used to:',
+      options: ['Detect an empty queue', 'Detect a full queue', 'Wrap the rear index around the array', 'Shift all queue elements'],
+      correctAnswer: 'Wrap the rear index around the array',
+      explanation: 'The modulo operator implements circular behavior: when rear reaches MAXSIZE-1, adding 1 and taking modulo wraps it back to 0. This is the key to reusing freed positions.',
+      tags: ['Modulo', 'Circular-Behavior']
+    },
+    {
+      id: 'u2-t2-q17',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'intermediate',
+      question: 'Circular array queue size=5, front=0, rear=4. One element is dequeued. Which statement is correct?',
+      options: ['Queue remains full', 'Queue becomes empty', 'The position at index 0 can be reused', 'No further insertion is possible'],
+      correctAnswer: 'The position at index 0 can be reused',
+      explanation: 'After dequeue, front advances from 0 to 1 (freeing index 0). Rear is at 4. Next enqueue computes (4+1)%5=0, so index 0 IS reusable immediately. This is the circular advantage.',
+      tags: ['Dequeue', 'Reuse', 'Circular-Queue']
+    },
+    {
+      id: 'u2-t2-q18',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'beginner',
+      question: 'In an array-based queue implementation, what could front_ and rear_ be set to upon initialization?',
+      options: ['Always -1', 'Always 0', 'Any valid index in the array (implementation-dependent)', 'MAXSIZE'],
+      correctAnswer: 'Any valid index in the array (implementation-dependent)',
+      explanation: 'Different implementations use different conventions. Some use front=rear=0 (empty when equal, one slot wasted). Others use front=rear=-1 (empty means rear==-1). The choice is up to the implementer.',
+      tags: ['Initialization', 'Convention']
+    },
+    {
+      id: 'u2-t2-q19',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'intermediate',
+      question: 'Circular queue MAXSIZE=5, front_=3, rear_=4. Next enqueue: temp = (++rear_) % MAXSIZE. What is the value of temp?',
+      options: ['5', '4', '0', '1'],
+      correctAnswer: '0',
+      explanation: '++rear_ = 5. Then 5 % MAXSIZE = 5 % 5 = 0. The circular wrap puts the next element at index 0.',
+      tags: ['Modulo', 'Trace']
+    },
+    {
+      id: 'u2-t2-q20',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'intermediate',
+      question: 'Linear (non-circular) queue size=5, front=0, rear=4 (full). Two DEQUEUE operations. Then Enqueue(60) with condition: `if (rear == MAX-1) printf("Overflow")`. What happens?',
+      options: ['60 is inserted at index 0', '60 is inserted at index 2', 'Overflow occurs even though 2 positions are free', 'Elements automatically shift left'],
+      correctAnswer: 'Overflow occurs even though 2 positions are free',
+      explanation: 'After two dequeues, front=2 but rear is still 4 (==MAX-1). The naive condition rear==MAX-1 fires and reports overflow, wasting indices 0 and 1. This false overflow is the fundamental flaw of linear queues that circular queues solve.',
+      tags: ['Linear-Queue', 'False-Overflow', 'Circular-Queue']
+    },
+    {
+      id: 'u2-t2-q21',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'intermediate',
+      question: 'In a circular queue (array size N), the next position of rear after enqueue is calculated as:',
+      options: ['rear + 1', 'rear - 1', '(rear + 1) % N', '(rear - 1) % N'],
+      correctAnswer: '(rear + 1) % N',
+      explanation: 'Adding 1 advances rear to the next slot. Taking modulo N wraps it around when it reaches N, back to 0. This is the standard circular queue advancement formula.',
+      tags: ['Formula', 'Modulo']
     }
   ],
   programmingProblems: [

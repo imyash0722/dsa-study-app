@@ -924,6 +924,105 @@ current->rlink->llink = newNode;`,
       correctAnswer: 'malloc',
       explanation: 'In C, `malloc` (or `calloc`) is used for dynamic memory allocation.',
       tags: ['c-programming', 'memory']
+    },
+    {
+      id: 'u1-t3-q11',
+      type: 'mcq',
+      topicId: 'u1-t3',
+      difficulty: 'beginner',
+      question: 'In a non-circular doubly linked list, the prev pointer of the FIRST node contains:',
+      options: ['Pointer to the last node', 'Pointer to the second node', 'NULL', 'Pointer to itself'],
+      correctAnswer: 'NULL',
+      explanation: 'In a non-circular DLL, the first node has no predecessor. Its llink (prev) is NULL. Only in a circular DLL would the first node\'s prev point to the last node.',
+      tags: ['DLL-Structure', 'First-Node']
+    },
+    {
+      id: 'u1-t3-q12',
+      type: 'mcq',
+      topicId: 'u1-t3',
+      difficulty: 'intermediate',
+      question: 'Pointer p is in the middle of a DLL. To insert new node temp IMMEDIATELY AFTER p, which sequence is correct?',
+      options: ['p->next_ = temp->next_; p->prev_ = temp->prev_', 'temp->next_ = p->next_; temp->prev_ = p->prev_', 'temp->next_ = p->next_; temp->prev_ = p', 'temp->next_ = p; temp->prev_ = p->prev_'],
+      correctAnswer: 'temp->next_ = p->next_; temp->prev_ = p',
+      explanation: 'To insert temp after p: temp->next_ = p->next_ (new node points forward to old successor) and temp->prev_ = p (new node points back to p). Then also update p->next_ = temp and temp->next_->prev_ = temp to complete all 4 links.',
+      tags: ['Insertion', 'Pointer-Wiring']
+    },
+    {
+      id: 'u1-t3-q13',
+      type: 'mcq',
+      topicId: 'u1-t3',
+      difficulty: 'intermediate',
+      question: 'When a new node is added to an EMPTY doubly linked list:',
+      options: ['Neither head_ nor tail_ will change', 'Both head_ and tail_ could change', 'Only head_ would change', 'Only tail_ would change'],
+      correctAnswer: 'Both head_ and tail_ could change',
+      explanation: 'When inserting into an empty DLL, the new node becomes both the first and last element. Both head_ (pointing to the start) and tail_ (pointing to the end) must be updated to point to this single new node.',
+      tags: ['Insertion', 'Empty-List']
+    },
+    {
+      id: 'u1-t3-q14',
+      type: 'spot-bug',
+      topicId: 'u1-t3',
+      difficulty: 'intermediate',
+      question: 'Sequence: `temp->next_ = p->next_; temp->prev_ = p; p->next_ = temp;` inserts temp after p (not at the end). Which statement is MISSING?',
+      options: ['p->next_->prev_ = temp', 'temp->next_->prev_ = p', 'p->prev_->next_ = temp', 'temp->prev_->next_ = temp'],
+      correctAnswer: 'p->next_->prev_ = temp',
+      explanation: 'After the 3 given assignments, the old successor (now temp->next_) still has its prev_ pointing to p. This backward link must be updated: p->next_->prev_ = temp (but since p->next_ is now temp, it is temp->next_->prev_ = temp). Without this, backward traversal is broken.',
+      tags: ['Insertion', 'Missing-Step', 'Backward-Links']
+    },
+    {
+      id: 'u1-t3-q15',
+      type: 'spot-bug',
+      topicId: 'u1-t3',
+      difficulty: 'advanced',
+      question: 'DLL: 5 <-> 10 <-> 15 <-> 20. p points to 15. Insert new node 12 BEFORE 15. Which sequence correctly updates ALL pointers?',
+      options: ['new->next = p; new->prev = p->prev; p->prev = new', 'new->next = p; new->prev = p->prev; p->prev->next = new; p->prev = new', 'new->prev = p; new->next = p->next; p->next = new', 'None of these'],
+      correctAnswer: 'new->next = p; new->prev = p->prev; p->prev->next = new; p->prev = new',
+      explanation: 'Four assignments needed: new->next = p (forward to 15); new->prev = p->prev (backward to 10); p->prev->next = new (10\'s forward link updated to 12); p->prev = new (15\'s backward link updated to 12). Option A is missing the crucial p->prev->next = new step.',
+      tags: ['Insertion-Before', 'All-Pointers']
+    },
+    {
+      id: 'u1-t3-q16',
+      type: 'mcq',
+      topicId: 'u1-t3',
+      difficulty: 'intermediate',
+      question: 'struct dll { node_t* head_; node_t* tail_; }; No header/tailer node. head_ == tail_ implies:',
+      options: ['Either the list is empty or has exactly one node', 'The list is definitely empty', 'The list has exactly one node', 'None of these'],
+      correctAnswer: 'Either the list is empty or has exactly one node',
+      explanation: 'When head_ == tail_: if both are NULL the list is empty; if both point to the same node the list has exactly one element. Both cases satisfy head_ == tail_, so it covers two possibilities.',
+      tags: ['DLL-State', 'Edge-Case']
+    },
+    {
+      id: 'u1-t3-q17',
+      type: 'mcq',
+      topicId: 'u1-t3',
+      difficulty: 'intermediate',
+      question: 'A DLL has n nodes. Pointer p points directly to the middle node. Which operation requires a loop?',
+      options: ['Deleting the node p points to', 'Adding p->data to the next node\'s data', 'Inserting a node before p', 'Adding p->data to EVERY node in the list'],
+      correctAnswer: 'Adding p->data to EVERY node in the list',
+      explanation: 'With a direct pointer p: deletion is O(1) (adjust prev and next). Accessing p->next is O(1). Inserting before p uses p->prev (O(1)). Only adding to every node requires traversing all n nodes \u2014 that needs a loop.',
+      tags: ['DLL-O1-Operations', 'Complexity']
+    },
+    {
+      id: 'u1-t3-q18',
+      type: 'predict-output',
+      topicId: 'u1-t3',
+      difficulty: 'advanced',
+      question: 'DLL: 10 <-> 20 <-> 30 <-> 40 <-> 50. p starts at 30. Perform: `p = p->next; p->prev->next = p->next; p->next->prev = p->prev;` What is the resulting list?',
+      options: ['10 <-> 20 <-> 30 <-> 40 <-> 50', '10 <-> 20 <-> 30 <-> 50', '10 <-> 20 <-> 40 <-> 50', '10 <-> 30 <-> 40 <-> 50'],
+      correctAnswer: '10 <-> 20 <-> 30 <-> 50',
+      explanation: 'p starts at 30. After p = p->next, p points to 40. Then p->prev->next = p->next unlinks 40 (30->next = 50). And p->next->prev = p->prev (50->prev = 30). Node 40 is removed. Result: 10 <-> 20 <-> 30 <-> 50.',
+      tags: ['Deletion-Trace', 'Pointer-Arithmetic']
+    },
+    {
+      id: 'u1-t3-q19',
+      type: 'mcq',
+      topicId: 'u1-t3',
+      difficulty: 'intermediate',
+      question: 'When we delete an element from a doubly linked list:',
+      options: ['head_ and tail_ will never change', 'head_ could change, tail_ will never change', 'tail_ could change, head_ will never change', 'None of these'],
+      correctAnswer: 'None of these',
+      explanation: 'Both head_ and tail_ can change during deletion. Deleting the first node changes head_. Deleting the last node changes tail_. So options A, B, and C are all incorrect \u2014 none of them is always true.',
+      tags: ['Deletion', 'Head-Tail']
     }
   ],
   programmingProblems: [

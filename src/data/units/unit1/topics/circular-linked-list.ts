@@ -391,6 +391,39 @@ Circular Linked Lists are not just theoretical constructs; they map directly to 
       correctAnswer: 'It causes an infinite loop.',
       explanation: 'Because the last node points back to the first node (not NULL), the condition `curr != NULL` will always be true, resulting in an infinite loop.',
       tags: ['traversal', 'bugs']
+    },
+    {
+      id: 'u1-t4-q9',
+      type: 'mcq',
+      topicId: 'u1-t4',
+      difficulty: 'intermediate',
+      question: 'A circular linked list contains exactly ONE node. Which statement is true?',
+      options: ['ptr_list->head_ == NULL', 'ptr_list->head_->next_ == NULL', 'ptr_list->head_ == ptr_list->head_->next_', 'ptr_list->head_ may point to any node'],
+      correctAnswer: 'ptr_list->head_ == ptr_list->head_->next_',
+      explanation: 'In a circular list, every node\'s next_ points to the next node. For a single node, it points to itself. So head_ == head_->next_ is the invariant for a one-node circular list. It cannot be NULL (not empty) and cannot be a different node.',
+      tags: ['Single-Node', 'Invariant']
+    },
+    {
+      id: 'u1-t4-q10',
+      type: 'mcq',
+      topicId: 'u1-t4',
+      difficulty: 'intermediate',
+      question: 'In a circular linked list, head_ points to a node in the list. What happens when the ONLY node is deleted?',
+      options: ['head_ remains unchanged', 'head_ becomes NULL', 'head_->next_ becomes NULL', 'A new node must be created'],
+      correctAnswer: 'head_ becomes NULL',
+      explanation: 'When the only node is deleted, the list becomes empty. head_ must be set to NULL to signal an empty circular list. This is the special single-node deletion case: after free, set head_ = NULL.',
+      tags: ['Deletion', 'Edge-Case']
+    },
+    {
+      id: 'u1-t4-q11',
+      type: 'spot-bug',
+      topicId: 'u1-t4',
+      difficulty: 'advanced',
+      question: 'In a non-empty circular list, `node_t *p = current; node_t *q = current; do { p = p->next_; q = q->next_->next_; } while (q != current);` What does this code do?',
+      options: ['p points to a node halfway across from current', 'q points to a node halfway across from current', 'Both p and q equal current when loop exits', 'Nodes may be traversed twice if the count is odd'],
+      correctAnswer: 'Nodes may be traversed twice if the count is odd',
+      explanation: 'This is a two-pointer pattern where q advances twice per iteration. For even-length lists, q returns exactly to current. For odd-length lists, q skips over current and must traverse another full round \u2014 so nodes are visited twice. Answer: D.',
+      tags: ['Two-Pointer', 'Traversal']
     }
   ],
   programmingProblems: [

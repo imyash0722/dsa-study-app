@@ -847,8 +847,8 @@ free(matrix); /* Then free the array of row pointers */`,
         },
         {
           id: 'u1-t1-s4-rc2',
-          front: 'What happens if realloc() fails, and why is `ptr = realloc(ptr, size)` dangerous?',
-          back: 'If realloc fails, it returns NULL but leaves the original memory block intact. Assigning directly to `ptr` destroys the reference to the original block, causing an irrecoverable memory leak.',
+          front: 'What happens if realloc() fails, and why is ptr = realloc(ptr, size) dangerous?',
+          back: 'If realloc fails, it returns NULL but leaves the original memory block intact. Assigning directly to ptr destroys the reference to the original block, causing an irrecoverable memory leak.',
           topicId: 'u1-t1',
           tags: ['realloc', 'memory-leak'],
         },
@@ -1171,6 +1171,200 @@ if (arr == NULL) {
         'False. The C standard (ISO/IEC 9899) explicitly specifies that if the argument passed to free() is a NULL pointer, no action occurs and the function safely returns.',
       tags: ['free', 'standards', 'true-false'],
     },
+    {
+      id: 'u1-t1-q101',
+      type: 'predict-output',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'Comment on the following function when called as: int a[] = {1,2,3,4,5}; disp(a, a+5);',
+      code: `void disp(int* f, int* l) {
+    while(f != l) {
+        printf("%d\\n", *f);
+        ++f;
+    }
+}`,
+      options: [
+        'Syntax error; size of array not specified',
+        'Runtime error; a+5 is a dangling pointer',
+        'Perfectly correct; no error',
+        'Runtime error; dangling pointer dereferenced'
+      ],
+      correctAnswer: 'Perfectly correct; no error',
+      explanation: 'a+5 is a valid one-past-the-end sentinel pointer. The loop stops before dereferencing it. This is standard C idiom for iterating over an array using pointer arithmetic.',
+      tags: ['pointers', 'arrays', 'pointer-arithmetic'],
+    },
+    {
+      id: 'u1-t1-q102',
+      type: 'spot-bug',
+      topicId: 'u1-t1',
+      difficulty: 'advanced',
+      question: 'Comment on the following code when called as: int a = 10; int b = 20; what(&a, &a); — what are the values of a and b?',
+      code: `void what(int* x, int* y) {
+    *x = *x ^ *y;
+    *y = *x ^ *y;
+    *x = *x ^ *y;
+}`,
+      options: ['10 20', '20 10', '0 0', 'None of these'],
+      correctAnswer: '0 0',
+      explanation: 'When x and y alias the same variable (both are &a), the XOR trick self-destructs. After step 1: *x = a^a = 0. After step 2: *y = 0^0 = 0. After step 3: *x = 0^0 = 0. Both a and b are 0. This is the classic aliasing bug with XOR swap.',
+      tags: ['pointers', 'bitwise', 'aliasing-bug'],
+    },
+    {
+      id: 'u1-t1-q103',
+      type: 'spot-bug',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'Comment on the following code:',
+      code: `void what() {
+    int *p;
+    {
+        int a = 10;
+        p = &a;
+    }
+    printf("%d\\n", *p);
+}`,
+      options: [
+        'Prints 10',
+        'Creates garbage',
+        'Creates a dangling reference and dereferences it',
+        'Creates aliases'
+      ],
+      correctAnswer: 'Creates a dangling reference and dereferences it',
+      explanation: 'a is a local variable that goes out of scope when the inner block ends. p now points to deallocated stack memory — a dangling pointer. Dereferencing it is undefined behavior.',
+      tags: ['pointers', 'dangling-pointer', 'scope'],
+    },
+    {
+      id: 'u1-t1-q104',
+      type: 'spot-bug',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'Comment on the following code — assume malloc succeeds.',
+      code: `void what() {
+    int *p = (int*)malloc(sizeof(int));
+    *p = 111;
+}`,
+      options: [
+        'No error; memory reclaimed when function terminates',
+        'Creates garbage and therefore a memory leak',
+        'Creates a dangling reference',
+        'Creates aliases'
+      ],
+      correctAnswer: 'Creates garbage and therefore a memory leak',
+      explanation: 'malloc allocates from the heap. Unlike stack memory, heap memory is NOT automatically reclaimed when a function returns. Since p is a local variable, the pointer is lost but the memory remains allocated — a classic memory leak.',
+      tags: ['malloc', 'memory-leak', 'dma'],
+    },
+    {
+      id: 'u1-t1-q105',
+      type: 'mcq',
+      topicId: 'u1-t1',
+      difficulty: 'beginner',
+      question: 'int a[10]; declared globally (outside main). What can we say about the array a?',
+      options: [
+        'All elements will be initialized to 0',
+        'All elements will have the same garbage value',
+        'Each element will have a distinct garbage value',
+        'Results in a syntax error'
+      ],
+      correctAnswer: 'All elements will be initialized to 0',
+      explanation: 'Global and static arrays in C are zero-initialized at program startup by the C runtime. Only local (stack) arrays contain garbage if not explicitly initialized.',
+      tags: ['arrays', 'initialization', 'globals'],
+    },
+    {
+      id: 'u1-t1-q106',
+      type: 'predict-output',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'What happens in the following code?',
+      code: `int a[] = {10,20,30,40,50};
+int *p = a+2;
+int x = *p++;`,
+      options: [
+        'x becomes 31; p unchanged',
+        'x becomes 30; p points to a[3]',
+        'Syntax error',
+        'x becomes 40; p points to a[3]'
+      ],
+      correctAnswer: 'x becomes 30; p points to a[3]',
+      explanation: 'Post-increment: *p++ first dereferences p (gets 30 = a[2]), then increments p to point to a[3]. x = 30, p -> a[3].',
+      tags: ['arrays', 'pointers', 'pointer-arithmetic'],
+    },
+    {
+      id: 'u1-t1-q107',
+      type: 'predict-output',
+      topicId: 'u1-t1',
+      difficulty: 'beginner',
+      question: 'What is the value of a == b in the following code?',
+      code: `int a[] = {1,2,3};
+int b[] = {1,2,3};`,
+      options: [
+        'Syntax error; arrays cannot be compared',
+        '1, as both contain the same elements',
+        '0, as both point to different memory locations',
+        'None of these'
+      ],
+      correctAnswer: '0, as both point to different memory locations',
+      explanation: 'In C, array names decay to pointers to their first elements. a and b point to different memory locations, so a == b compares pointers, which are different. Result is 0 (false). This does NOT compare element values.',
+      tags: ['arrays', 'pointers', 'equality'],
+    },
+    {
+      id: 'u1-t1-q108',
+      type: 'predict-output',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'sizeof(int) is 4 bytes. What is the value of p-a in the following code?',
+      code: `int a[] = {10,20,30,40,50};
+int *p = a+5;`,
+      options: [
+        '20',
+        '5',
+        'Depends on implementation',
+        'Error: pointer minus array not allowed'
+      ],
+      correctAnswer: '5',
+      explanation: 'Pointer subtraction gives the number of ELEMENTS between the two pointers, not bytes. p = a+5, so p-a = 5 regardless of sizeof(int). This is always measured in elements.',
+      tags: ['arrays', 'pointers', 'pointer-arithmetic'],
+    },
+    {
+      id: 'u1-t1-q109',
+      type: 'mcq',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'int a[5][4]; — counting from 0, what is the position (flat index) of a[3][2]?',
+      options: ['14', '17', '13', 'None of these'],
+      correctAnswer: '14',
+      explanation: 'Row-major order: position = row * num_cols + col = 3*4 + 2 = 12 + 2 = 14.',
+      tags: ['arrays', '2d-arrays', 'memory-layout'],
+    },
+    {
+      id: 'u1-t1-q110',
+      type: 'mcq',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'If sizeof(int)=4 and sizeof(char)=1, what is sizeof(struct what)?',
+      code: `struct what {
+    char ch;
+    int n;
+};`,
+      options: ['5', '8', 'Depends on the compiler', 'None of these'],
+      correctAnswer: 'Depends on the compiler',
+      explanation: 'Structure padding is implementation-defined and depends on the compiler and architecture. The compiler may add 3 bytes of padding after ch to align n on a 4-byte boundary, giving 8. But this depends on the compiler.',
+      tags: ['structures', 'sizeof', 'memory-alignment'],
+    },
+    {
+      id: 'u1-t1-q111',
+      type: 'mcq',
+      topicId: 'u1-t1',
+      difficulty: 'advanced',
+      question: 'How do you refer to the 5th element of a in the 2nd element of c (counting from 0)?',
+      code: `struct what {
+    int a[10];
+    double b;
+} c[5];`,
+      options: ['c[1].a[4]', 'c[1]->a[4]', 'c.a[1][4]', 'c[1][4].a'],
+      correctAnswer: 'c[1].a[4]',
+      explanation: 'c is an array of structs (not a pointer), so use dot notation. c[1] is the 2nd element (index 1). c[1].a[4] is the 5th element (index 4) of its a array.',
+      tags: ['structures', 'arrays', 'syntax'],
+    }
   ],
 
   programmingProblems: [

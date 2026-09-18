@@ -781,17 +781,6 @@ enqueue(&q, 10); // Pass address`,
   ],
   theoryQuestions: [
     {
-      id: 'u2-t1-q99',
-      type: 'mcq',
-      topicId: 'u2-t1',
-      difficulty: 'intermediate',
-      question: 'In a linked list queue, what happens when a dequeue operation makes the queue empty?',
-      options: ['Only the front pointer becomes NULL', 'Only the rear pointer becomes NULL', 'Both front and rear pointers must be updated to NULL', 'Neither pointer is updated'],
-      correctAnswer: 'Both front and rear pointers must be updated to NULL',
-      explanation: 'When the last element is dequeued, front naturally becomes NULL, but rear must also be manually set to NULL to prevent a dangling pointer.',
-      tags: ['pointers', 'boundary-case']
-    },
-    {
       id: 'u2-t1-q1',
       type: 'mcq',
       topicId: 'u2-t1',
@@ -937,6 +926,55 @@ dequeue(&q);`,
       correctAnswer: 'Does not handle the empty queue case',
       explanation: 'If the queue is empty, `q->rear_` is NULL, so `q->rear_->next_` will cause a Segmentation Fault. It misses the `if(q->rear_ == NULL)` check.',
       tags: ['Enqueue', 'Bug']
+    },
+    {
+      id: 'u2-t1-q11',
+      type: 'spot-bug',
+      topicId: 'u2-t1',
+      difficulty: 'intermediate',
+      question: 'In a linked-list queue, dequeue is: `void dequeue() { Node *p = front; front = front->next; free(p); }`. What problem occurs when the queue contains exactly ONE element?',
+      code: `void dequeue() {
+    Node *p = front;
+    front = front->next;  // front becomes NULL
+    free(p);
+    // rear still points to the freed node p!
+}`,
+      correctAnswer: 'front becomes NULL but rear remains a stale/dangling pointer to the freed node',
+      explanation: 'When the only element is dequeued, front = front->next = NULL. But rear still points to the old node that was just freed. rear is now a dangling pointer. Fix: after free(p), check if (front == NULL) then set rear = NULL.',
+      tags: ['Dequeue', 'Edge-Case', 'Dangling-Pointer']
+    },
+    {
+      id: 'u2-t1-q12',
+      type: 'mcq',
+      topicId: 'u2-t1',
+      difficulty: 'beginner',
+      question: 'A printer receives jobs in order A -> B -> C -> D. Each job is fully processed before the next is selected. Which data structure is best?',
+      options: ['Queue', 'Priority Queue', 'Stack', 'Circular list with time-slicing'],
+      correctAnswer: 'Queue',
+      explanation: 'Printer jobs must be processed in the order they arrive \u2014 First In, First Out. A Queue is the natural data structure for this FIFO requirement.',
+      tags: ['Application', 'FIFO']
+    },
+    {
+      id: 'u2-t1-q13',
+      type: 'mcq',
+      topicId: 'u2-t1',
+      difficulty: 'beginner',
+      question: 'A bank queue follows strict FIFO. A manager pulls out any customer from the middle of the queue to serve them immediately. What fundamental property does this violate?',
+      options: ['The rule that a queue cannot use arrays', 'The requirement that a queue must have fixed capacity', 'The fundamental FIFO property that defines a queue', 'The rule that a queue must be empty before insertion'],
+      correctAnswer: 'The fundamental FIFO property that defines a queue',
+      explanation: 'A queue guarantees that elements are removed only from the front (FIFO). Removing from the middle violates this invariant \u2014 what is described is more like a priority queue or an arbitrary-access list.',
+      tags: ['FIFO', 'Concept']
+    },
+    {
+      id: 'u2-t1-q14',
+      type: 'mcq',
+      topicId: 'u2-t1',
+      difficulty: 'intermediate',
+      question: 'Linear queue Q[0..4], front = rear = -1. Perform: Enqueue(10), Enqueue(20), Enqueue(30), Dequeue(), Enqueue(40), Enqueue(50). What is the final state?',
+      options: ['Q=[20,30,40,50,_], front=1, rear=4', 'Q=[_,20,30,40,50], front=1, rear=4', 'Q=[20,30,40,50,_], front=0, rear=3', 'Overflow occurs during Enqueue(50)'],
+      correctAnswer: 'Q=[_,20,30,40,50], front=1, rear=4',
+      explanation: 'After Enqueue(10,20,30): Q=[10,20,30,_,_], front=0, rear=2. Dequeue(): removes 10, front=1. Enqueue(40): rear=3. Enqueue(50): rear=4. Final: index 0 holds 10 (logically removed), front=1 points to 20, rear=4 points to 50.',
+      tags: ['Trace', 'Linear-Queue']
     }
   ],
   programmingProblems: [
