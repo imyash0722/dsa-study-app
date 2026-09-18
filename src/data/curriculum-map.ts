@@ -5,6 +5,8 @@ import { doublyLinkedList } from './units/unit1/topics/doubly-linked-list';
 import { circularLinkedList } from './units/unit1/topics/circular-linked-list';
 import { multilistsSparseSkip } from './units/unit1/topics/multilists-sparse-skip';
 import { stacks } from './units/unit1/topics/stacks';
+import { orderedListHeader } from './units/unit1/topics/ordered-list-header';
+import { polynomialAdt } from './units/unit1/topics/polynomial-adt';
 
 import { queueUsingList } from './units/unit2/topics/queue-using-list';
 import { circularQueueArray } from './units/unit2/topics/circular-queue-array';
@@ -41,9 +43,9 @@ export const curriculumMap: Unit[] = [
   {
     id: 'unit-1',
     number: 1,
-    title: 'Linear Data Structures, Memory Management & Stacks',
+    title: 'Linear Data Structures, Lists, Stacks & Polynomial ADT',
     slug: 'unit-1',
-    description: 'Dynamic memory management, Singly Linked Lists, Doubly Linked Lists, Circular Linked Lists, Multilists, Sparse Matrices, Skip Lists, and Stacks with applications (infix-to-postfix, expression evaluation, parenthesis matching).',
+    description: 'Dynamic memory management, Singly/Doubly/Circular Linked Lists, Ordered List with Header Node, Multilists, Stacks with applications (brackets, infix-to-postfix, expression evaluation), and Polynomial ADT (construct, eval, copy, differentiate).',
     hours: 15,
     labIds: ['lab-1'],
     topics: [
@@ -53,6 +55,8 @@ export const curriculumMap: Unit[] = [
       circularLinkedList,
       multilistsSparseSkip,
       stacks,
+      orderedListHeader,
+      polynomialAdt,
     ],
   },
   {
