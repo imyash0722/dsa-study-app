@@ -1046,6 +1046,28 @@ if (p != NULL) {
 
   theoryQuestions: [
     {
+      id: 'u1-t1-q99',
+      type: 'predict-output',
+      topicId: 'u1-t1',
+      difficulty: 'advanced',
+      question: 'What is the output of the following XOR-swap using pointers?',
+      code: 'void swap(int *a, int *b) {\n  *a ^= *b;\n  *b ^= *a;\n  *a ^= *b;\n}\nint main() {\n  int x = 5, y = 10;\n  swap(&x, &y);\n  printf("%d %d", x, y);\n}',
+      correctAnswer: '10 5',
+      explanation: 'The XOR swap algorithm safely swaps two integers without a temporary variable. Passing pointers ensures the original variables in main are modified.',
+      tags: ['pointers', 'bitwise']
+    },
+    {
+      id: 'u1-t1-q100',
+      type: 'mcq',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'What does sizeof() return for a pointer variable on a typical 64-bit architecture?',
+      options: ['4 bytes', '8 bytes', 'Depends on the type it points to', '1 byte'],
+      correctAnswer: '8 bytes',
+      explanation: 'On a 64-bit architecture, a memory address is 64 bits (8 bytes) long, regardless of whether it points to a char, int, or struct.',
+      tags: ['pointers', 'sizeof']
+    },
+    {
       id: 'u1-t1-q1',
       type: 'mcq',
       topicId: 'u1-t1',

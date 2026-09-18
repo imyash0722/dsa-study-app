@@ -439,6 +439,17 @@ int main()
   ],
   theoryQuestions: [
     {
+      id: 'u2-t2-q99',
+      type: 'mcq',
+      topicId: 'u2-t2',
+      difficulty: 'advanced',
+      question: 'If a circular queue has MAXSIZE = 8 and currently front = 7 and rear = 2, how many elements are in the queue? (Assume front points to one slot before the first element)',
+      options: ['3', '4', '5', '6'],
+      correctAnswer: '3',
+      explanation: 'The elements are at indices 0, 1, and 2. Thus, there are 3 elements.',
+      tags: ['capacity', 'boundary-case']
+    },
+    {
       id: 'u2-t2-q1',
       type: 'mcq',
       topicId: 'u2-t2',

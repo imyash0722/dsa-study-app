@@ -1108,6 +1108,17 @@ int main() {
   ],
   theoryQuestions: [
     {
+      id: 'u1-t2-q99',
+      type: 'mcq',
+      topicId: 'u1-t2',
+      difficulty: 'beginner',
+      question: 'Which of the following is true about Traversing a linked list?',
+      options: ['You can start from the middle if you know the index', 'You must always start from the head node', 'It is faster than traversing an array', 'It requires O(1) time complexity'],
+      correctAnswer: 'You must always start from the head node',
+      explanation: 'Linked lists do not have random access by index, so you must always begin traversal from the head pointer.',
+      tags: ['traversal']
+    },
+    {
       id: 'u1-t2-q1',
       type: 'mcq',
       topicId: 'u1-t2',

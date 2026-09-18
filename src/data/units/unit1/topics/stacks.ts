@@ -914,6 +914,17 @@ This is the correct Prefix notation!
   ],
   theoryQuestions: [
     {
+      id: 'u1-t6-q99',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'advanced',
+      question: 'Which of the following string patterns can be recognized using a single stack?',
+      options: ['a^n b^n c^n', 'a^n b^2n', 'ww', 'None of the above'],
+      correctAnswer: 'a^n b^2n',
+      explanation: 'A stack can be used to count and match characters. For every \'a\', we can push two tokens onto the stack, and for every \'b\', we pop one token. If the stack is empty at the end, it matches a^n b^2n.',
+      tags: ['applications', 'recognition']
+    },
+    {
       id: 'u1-t6-q1',
       type: 'mcq',
       topicId: 'u1-t6',

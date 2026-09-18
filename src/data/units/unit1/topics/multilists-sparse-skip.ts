@@ -593,6 +593,27 @@ for (int i = 0; i <= rlevel; i++) {
   ],
   theoryQuestions: [
     {
+      id: 'u1-t5-q99',
+      type: 'true-false',
+      topicId: 'u1-t5',
+      difficulty: 'beginner',
+      question: 'In a Skip List, the bottom-most level contains all the elements in the list.',
+      correctAnswer: true,
+      explanation: 'The bottom level of a Skip List is a standard sorted linked list containing every single element.',
+      tags: ['skiplist', 'structure']
+    },
+    {
+      id: 'u1-t5-q100',
+      type: 'mcq',
+      topicId: 'u1-t5',
+      difficulty: 'intermediate',
+      question: 'How is the height of a new node determined in a Skip List during insertion?',
+      options: ['Based on the size of the list', 'Probabilistically (e.g., via coin flips)', 'It is always fixed to MAX_LEVEL', 'It depends on the value of the node'],
+      correctAnswer: 'Probabilistically (e.g., via coin flips)',
+      explanation: 'Skip lists use randomization to maintain balance. The level of a new node is determined probabilistically.',
+      tags: ['skiplist', 'insertion']
+    },
+    {
       id: 'u1-t5-q1',
       type: 'mcq',
       topicId: 'u1-t5',

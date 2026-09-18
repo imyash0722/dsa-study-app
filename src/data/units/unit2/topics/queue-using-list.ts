@@ -781,6 +781,17 @@ enqueue(&q, 10); // Pass address`,
   ],
   theoryQuestions: [
     {
+      id: 'u2-t1-q99',
+      type: 'mcq',
+      topicId: 'u2-t1',
+      difficulty: 'intermediate',
+      question: 'In a linked list queue, what happens when a dequeue operation makes the queue empty?',
+      options: ['Only the front pointer becomes NULL', 'Only the rear pointer becomes NULL', 'Both front and rear pointers must be updated to NULL', 'Neither pointer is updated'],
+      correctAnswer: 'Both front and rear pointers must be updated to NULL',
+      explanation: 'When the last element is dequeued, front naturally becomes NULL, but rear must also be manually set to NULL to prevent a dangling pointer.',
+      tags: ['pointers', 'boundary-case']
+    },
+    {
       id: 'u2-t1-q1',
       type: 'mcq',
       topicId: 'u2-t1',

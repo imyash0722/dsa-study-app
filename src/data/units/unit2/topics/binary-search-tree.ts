@@ -345,6 +345,26 @@ export const binarySearchTree: Topic = {
   ],
   theoryQuestions: [
     {
+      id: 'u2-t7-q99',
+      type: 'predict-output',
+      topicId: 'u2-t7',
+      difficulty: 'advanced',
+      question: 'Trace the output: Insert [30, 20, 40, 10, 25, 35, 50] into an empty BST, then perform a Postorder traversal.',
+      correctAnswer: '10 25 20 35 50 40 30',
+      explanation: 'The tree is constructed with 30 as root. Postorder (Left, Right, Root) yields 10 25 20 35 50 40 30.',
+      tags: ['trace', 'traversal']
+    },
+    {
+      id: 'u2-t7-q100',
+      type: 'predict-output',
+      topicId: 'u2-t7',
+      difficulty: 'advanced',
+      question: 'Consider a BST with insertions [10, 5, 15, 2, 7, 12, 20]. What is the root of the left subtree of the node containing 15?',
+      correctAnswer: '12',
+      explanation: 'Node 15 is the right child of 10. Its left child is 12.',
+      tags: ['trace', 'structure']
+    },
+    {
       id: 'u2-t7-q1',
       type: 'mcq',
       topicId: 'u2-t7',
