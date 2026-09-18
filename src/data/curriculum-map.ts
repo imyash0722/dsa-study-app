@@ -6,17 +6,10 @@ import { circularLinkedList } from './units/unit1/topics/circular-linked-list';
 import { multilistsSparseSkip } from './units/unit1/topics/multilists-sparse-skip';
 import { stacks } from './units/unit1/topics/stacks';
 
-import { arrays1d } from './units/unit2/topics/arrays-1d';
-import { arrays2d } from './units/unit2/topics/arrays-2d';
-import { pointers } from './units/unit2/topics/pointers';
-import { pointerToArray } from './units/unit2/topics/pointer-to-array';
-import { arrayOfPointers } from './units/unit2/topics/array-of-pointers';
-import { functions } from './units/unit2/topics/functions';
-import { callbacks } from './units/unit2/topics/callbacks';
-import { storageClasses } from './units/unit2/topics/storage-classes';
-import { recursion } from './units/unit2/topics/recursion';
-import { searching } from './units/unit2/topics/searching';
-import { sorting } from './units/unit2/topics/sorting';
+import { queueUsingList } from './units/unit2/topics/queue-using-list';
+import { circularQueueArray } from './units/unit2/topics/circular-queue-array';
+import { priorityQueueImpl } from './units/unit2/topics/priority-queue-impl';
+import { queueApplications } from './units/unit2/topics/queue-applications';
 import { strings as cStrings } from './units/unit3/topics/strings';
 import { stringManipulation } from './units/unit3/topics/string-manipulation';
 import { commandLineArgs } from './units/unit3/topics/command-line-args';
@@ -62,23 +55,16 @@ export const curriculumMap: Unit[] = [
   {
     id: 'unit-2',
     number: 2,
-    title: 'Counting, Sorting and Searching',
-    slug: 'counting-sorting-searching',
-    description: 'Arrays, pointers, functions, callbacks, storage classes, recursion, and fundamental algorithms.',
+    title: 'Queues, Circular Queue & Priority Queue',
+    slug: 'unit-2',
+    description: 'Queue ADT using linked lists and circular arrays, Priority Queue with 4 implementations (unordered/ordered × array/list), and applications including the Josephus Problem and CPU scheduling.',
     hours: 14,
     labIds: ['lab-2'],
     topics: [
-      arrays1d,
-      arrays2d,
-      pointers,
-      pointerToArray,
-      arrayOfPointers,
-      functions,
-      callbacks,
-      storageClasses,
-      recursion,
-      searching,
-      sorting,
+      queueUsingList,
+      circularQueueArray,
+      priorityQueueImpl,
+      queueApplications,
     ],
   },
   {
