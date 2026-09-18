@@ -1364,6 +1364,82 @@ int *p = a+5;`,
       correctAnswer: 'c[1].a[4]',
       explanation: 'c is an array of structs (not a pointer), so use dot notation. c[1] is the 2nd element (index 1). c[1].a[4] is the 5th element (index 4) of its a array.',
       tags: ['structures', 'arrays', 'syntax'],
+    },
+    {
+      id: 'u1-t1-q112',
+      type: 'mcq',
+      topicId: 'u1-t1',
+      difficulty: 'advanced',
+      question: 'Which of the following is FALSE?',
+      code: `int a[10] = {1,2,3};
+int *p = a;
+int foo(int *q) { return (int)q; }`,
+      options: ['sizeof(a) == sizeof(p)', '*a == *p', 'a == p', 'foo(a) == foo(p)'],
+      correctAnswer: 'sizeof(a) == sizeof(p)',
+      explanation: 'sizeof(a) gives the total size of the array (e.g. 40 bytes for int[10]). sizeof(p) gives the size of a pointer (e.g. 8 bytes on 64-bit). They are NOT equal. All other options are true: *a == *p (both 1), a == p (both point to a[0]), foo(a) == foo(p) (both pass the same address).',
+      tags: ['sizeof', 'Array-vs-Pointer']
+    },
+    {
+      id: 'u1-t1-q113',
+      type: 'predict-output',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'Which is true?',
+      code: `struct node { int key_; struct node* next_; };
+typedef struct node node_t;
+node_t *p = malloc(sizeof(node_t));
+p->key_ = 10;
+p->next_ = malloc(sizeof(node_t));
+p->next_->key_ = 20;
+p->next_->next_ = NULL;`,
+      options: ['p->key_ is 10', 'p->next_->key_ is 20', 'Results in dangling pointer', 'Results in garbage therefore memory leak'],
+      correctAnswer: 'p->key_ is 10',
+      explanation: 'Both a) and b) are true. p->key_ is 10 and p->next_->key_ is 20. There is no dangling pointer (no free called) and no memory leak (the list is not lost). Since both a and b are true and the question asks which is true, option a is the first correct answer. (Note: in the original slide this is a multi-true question.)',
+      tags: ['DMA', 'Node-Creation']
+    },
+    {
+      id: 'u1-t1-q114',
+      type: 'spot-bug',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'What is p now?',
+      code: `node_t *p = malloc(sizeof(node_t));
+p->key_ = 10;
+free(p);
+// What is p now?`,
+      options: ['p->key_ is 10', 'p->next_->key_ is 20', 'p is a dangling pointer', 'Results in garbage therefore memory leak'],
+      correctAnswer: 'p is a dangling pointer',
+      explanation: 'After free(p), the memory p pointed to has been returned to the heap. p itself still holds the old address but that memory is no longer valid. Accessing *p after free is undefined behavior. p is now a dangling pointer.',
+      tags: ['DMA', 'Dangling-Pointer', 'free']
+    },
+    {
+      id: 'u1-t1-q115',
+      type: 'spot-bug',
+      topicId: 'u1-t1',
+      difficulty: 'intermediate',
+      question: 'What is the issue?',
+      code: `node_t *p = malloc(sizeof(node_t));
+p->key_ = 10;
+p->next_ = malloc(sizeof(node_t));
+p->next_->key_ = 20;`,
+      options: ['p->key_ is 10', 'p->next_->key_ is 20', 'p->next_->next_ is a dangling pointer', 'Results in garbage therefore memory leak'],
+      correctAnswer: 'p->next_->next_ is a dangling pointer',
+      explanation: 'p->next_->next_ was never initialized. malloc does not zero-initialize memory. p->next_->next_ contains a garbage (indeterminate) value and should have been set to NULL. This is a dangling/garbage pointer.',
+      tags: ['DMA', 'Uninitialized-Pointer']
+    },
+    {
+      id: 'u1-t1-q116',
+      type: 'predict-output',
+      topicId: 'u1-t1',
+      difficulty: 'advanced',
+      question: 'What is true?',
+      code: `node_t *p = malloc(sizeof(node_t));
+p->key_ = 10;
+p->next_ = p;`,
+      options: ['Runtime error', 'p->next_->key_ is 10', 'p->next_->next_ is a dangling pointer', 'Results in garbage therefore memory leak'],
+      correctAnswer: 'p->next_->key_ is 10',
+      explanation: 'p->next_ = p makes p point to itself (a circular self-referential node). Since p->next_ == p, p->next_->key_ == p->key_ == 10. This is valid C — no runtime error. It creates a circular structure, not a memory leak in itself.',
+      tags: ['DMA', 'Self-Reference', 'Circular']
     }
   ],
 

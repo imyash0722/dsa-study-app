@@ -1108,6 +1108,50 @@ This is the correct Prefix notation!
       correctAnswer: 'By encountering a pop from an empty stack',
       explanation: '(())) has a surplus right parenthesis. When we reach the 4th ), we attempt to pop from the stack but it is already empty \u2014 this signals a mismatch. Option c catches the case of surplus left parentheses (e.g., ((()). Both mechanisms are needed for complete validation.',
       tags: ['Bracket-Matching', 'Application']
+    },
+    {
+      id: 'u1-t6-q19',
+      type: 'predict-output',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'The expression a=b=c in postfix is:',
+      options: ['a b = c =', 'a b c = =', 'c b = a =', 'c b a = ='],
+      correctAnswer: 'a b c = =',
+      explanation: 'The = operator is RIGHT-associative (a=(b=c)). Right-associativity means we process right-to-right. Converting a=(b=c): b=c becomes b c =, then a=(b c =) becomes a b c = =. The rightmost = evaluates first, consistent with how C assignment chains work.',
+      tags: ['Expression-Conversion', 'Postfix', 'Associativity']
+    },
+    {
+      id: 'u1-t6-q20',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'While evaluating a postfix expression, we require:',
+      options: ['A stack of operators', 'A stack of operands', 'Stacks of both operators and operands', 'None of these'],
+      correctAnswer: 'A stack of operands',
+      explanation: 'Postfix evaluation algorithm: scan left to right. If operand, push onto stack. If operator, pop two operands, apply operator, push result. Only ONE stack is needed - a stack of operands/values. No operator stack is required (operators are applied immediately when encountered).',
+      tags: ['Postfix-Evaluation', 'Algorithm']
+    },
+    {
+      id: 'u1-t6-q21',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'In a postfix expression:',
+      options: ['Left parenthesis has the highest precedence', 'Right parenthesis has the highest precedence', 'There are no parentheses', 'None of these'],
+      correctAnswer: 'There are no parentheses',
+      explanation: 'This is one of the key advantages of postfix (Reverse Polish Notation): precedence is encoded entirely in the ORDER of operators. Parentheses are not needed and do not appear in the postfix form. The expression is unambiguous without them.',
+      tags: ['Postfix', 'Parentheses', 'Notation']
+    },
+    {
+      id: 'u1-t6-q22',
+      type: 'mcq',
+      topicId: 'u1-t6',
+      difficulty: 'intermediate',
+      question: 'While converting an expression from infix to postfix, which statement about the left parenthesis is correct?',
+      options: ['Left parenthesis has the highest precedence in the input string', 'Left parenthesis has the highest precedence in the stack', 'Precedence of parentheses is the same in both the input string and the stack', 'None of these'],
+      correctAnswer: 'None of these',
+      explanation: 'In the shunting-yard algorithm, a left parenthesis in the INPUT STRING acts as a barrier (no operator can be popped past it) but in the STACK it has the LOWEST precedence (any incoming operator pushes on top of it). So its precedence differs between input and stack. Neither a nor b is fully correct, so d (none of these) is right.',
+      tags: ['Infix-to-Postfix', 'Parenthesis-Precedence', 'Shunting-Yard']
     }
   ],
   programmingProblems: [

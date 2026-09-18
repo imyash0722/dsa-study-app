@@ -489,6 +489,28 @@ export const binarySearchTree: Topic = {
       correctAnswer: true,
       explanation: 'Since time complexity is O(h) and a degenerate tree has h = n, searching for the last element in a 100-node skewed tree requires 100 comparisons.',
       tags: ['performance', 'complexity']
+    },
+    {
+      id: 'u2-t7-q13',
+      type: 'mcq',
+      topicId: 'u2-t7',
+      difficulty: 'intermediate',
+      question: 'In a BST where keys less than the root are on the left, the node with the LEAST key:',
+      options: ['Will be a leaf', 'Will not have a left subtree', 'Will not have a right subtree', 'Can have both left and right subtrees'],
+      correctAnswer: 'Will not have a left subtree',
+      explanation: 'In a BST, the minimum key is always found by going left as far as possible. The node with the least key has NO left subtree (there is nothing smaller to the left). It MAY have a right subtree (with keys still smaller than the parent). It is not necessarily a leaf.',
+      tags: ['BST-Property', 'Minimum-Node']
+    },
+    {
+      id: 'u2-t7-q14',
+      type: 'mcq',
+      topicId: 'u2-t7',
+      difficulty: 'intermediate',
+      question: 'The number of comparisons while searching a BST of n nodes in the WORST CASE will be:',
+      options: ['log2(n)', 'n', 'n/2', 'n-1'],
+      correctAnswer: 'n',
+      explanation: 'In the worst case, a BST degenerates into a skewed tree (like a linked list) when elements are inserted in sorted order. In this case, height = n and searching the deepest node requires n comparisons. Average case for a balanced BST is O(log n), but worst case is O(n).',
+      tags: ['BST-Search', 'Worst-Case', 'Complexity']
     }
   ],
   programmingProblems: [

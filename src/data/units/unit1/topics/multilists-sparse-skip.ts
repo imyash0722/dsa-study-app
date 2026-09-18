@@ -757,6 +757,61 @@ for (int i = 0; i <= rlevel; i++) {
       correctAnswer: 'False',
       explanation: 'The expected (average) time is O(log n). The worst-case is O(n), which occurs if the randomizer completely fails and assigns level 0 to every single node, reducing it to a normal linked list.',
       tags: ['skiplist']
+    },
+    {
+      id: 'u1-t5-q11',
+      type: 'mcq',
+      topicId: 'u1-t5',
+      difficulty: 'intermediate',
+      question: 'What is true in a skiplist?',
+      options: ['There are multiple levels, each with the same number of nodes', 'The number of pointers in each node depends on the number of levels it participates in', 'Traversal for any operation starts at the higher level which has all nodes', 'Any insertion affects at most one level'],
+      correctAnswer: 'The number of pointers in each node depends on the number of levels it participates in',
+      explanation: 'In a skiplist, each node has a variable number of forward pointers based on the levels it participates in. Level 0 (bottom) has ALL nodes. Higher levels have progressively fewer nodes. Insertions probabilistically affect multiple levels. Traversal starts at the highest level and works downward.',
+      tags: ['Skiplist', 'Structure']
+    },
+    {
+      id: 'u1-t5-q12',
+      type: 'mcq',
+      topicId: 'u1-t5',
+      difficulty: 'intermediate',
+      question: 'What is true in a multilist?',
+      options: ['Same as a multidimensional array', 'Every node has only a single pointer', 'Every node may participate in multiple lists simultaneously', 'Adding a node requires updating only one list'],
+      correctAnswer: 'Every node may participate in multiple lists simultaneously',
+      explanation: 'In a multilist, a single node can be a member of several different linked lists at the same time (by having multiple next/link pointers, one per list). Example: a student node participates in both the course-1 list and course-2 list. Adding a node may update multiple lists.',
+      tags: ['Multilist', 'Structure']
+    },
+    {
+      id: 'u1-t5-q13',
+      type: 'mcq',
+      topicId: 'u1-t5',
+      difficulty: 'intermediate',
+      question: 'A sparse matrix representation is an example of:',
+      options: ['Using more space to gain in time', 'Using less space at the cost of time', 'A 2D array that can be directly indexed', 'A matrix where most elements are non-zero'],
+      correctAnswer: 'Using less space at the cost of time',
+      explanation: 'A dense 2D array stores all elements including zeros (wasting space for large sparse matrices). A sparse representation (e.g., linked list of non-zero elements) uses much less space but requires more time to access a specific element (no direct O(1) indexing). Trade-off: space for time.',
+      tags: ['Sparse-Matrix', 'Trade-off']
+    },
+    {
+      id: 'u1-t5-q14',
+      type: 'mcq',
+      topicId: 'u1-t5',
+      difficulty: 'intermediate',
+      question: 'In a skiplist, the BOTTOM-MOST level contains:',
+      options: ['Only the largest element', 'Only the smallest element', 'All the elements in sorted order', 'Randomly selected elements'],
+      correctAnswer: 'All the elements in sorted order',
+      explanation: 'Level 0 (the bottom-most level) of a skiplist is essentially a complete sorted linked list containing ALL elements. Higher levels contain progressively fewer elements, acting as express lanes. This is the fundamental structure: bottom = all elements, top = fewest elements.',
+      tags: ['Skiplist', 'Level-Structure']
+    },
+    {
+      id: 'u1-t5-q15',
+      type: 'mcq',
+      topicId: 'u1-t5',
+      difficulty: 'intermediate',
+      question: 'A multilist is particularly useful when:',
+      options: ['You need O(1) random access to any element', 'A single node needs to belong to multiple different lists representing different relationships', 'You need to sort elements in multiple orders simultaneously using arrays', 'You need a stack and a queue at the same time'],
+      correctAnswer: 'A single node needs to belong to multiple different lists representing different relationships',
+      explanation: 'Multilists shine when data has multiple relationships. Example: a student is enrolled in multiple courses. One node represents the student, and it participates in a linked list for each course. This avoids data duplication while allowing multiple traversal paths.',
+      tags: ['Multilist', 'Use-Case']
     }
   ],
   programmingProblems: [

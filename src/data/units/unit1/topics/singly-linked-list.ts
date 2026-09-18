@@ -1242,6 +1242,61 @@ printf("%d", a->link->link->data);`,
       correctAnswer: 'Use-after-free error',
       explanation: 'The code calls `free(*head)` and THEN tries to access `(*head)->link`. Once memory is freed, accessing it results in undefined behavior (use-after-free). You must save the link in a temporary variable before freeing.',
       tags: ['bugs', 'memory']
+    },
+    {
+      id: 'u1-t2-q11',
+      type: 'mcq',
+      topicId: 'u1-t2',
+      difficulty: 'beginner',
+      question: 'An Abstract Data Type (ADT) specifies:',
+      options: ['Both interface and implementation', 'Only the implementation', 'Only the interface', 'None of these'],
+      correctAnswer: 'Only the interface',
+      explanation: 'An ADT defines WHAT operations are available and their behavior (the interface/contract) without specifying HOW they are implemented. The implementation is hidden from the user. This is the core concept of abstraction and encapsulation.',
+      tags: ['ADT', 'Abstraction']
+    },
+    {
+      id: 'u1-t2-q12',
+      type: 'mcq',
+      topicId: 'u1-t2',
+      difficulty: 'beginner',
+      question: 'An array is a data structure in which:',
+      options: ['Access is faster but insertion and deletion are not', 'Both access and insertion/deletion are fast', 'Both access and insertion/deletion are slow', 'None of these'],
+      correctAnswer: 'Access is faster but insertion and deletion are not',
+      explanation: 'Arrays provide O(1) random access (direct indexing). However, insertion and deletion require shifting elements: O(n) in the worst case. This trade-off is the key reason linked lists exist as an alternative.',
+      tags: ['Array', 'Complexity']
+    },
+    {
+      id: 'u1-t2-q13',
+      type: 'mcq',
+      topicId: 'u1-t2',
+      difficulty: 'intermediate',
+      question: 'A linked list is a data structure in which:',
+      options: ['Access is faster but insertion/deletion are not', 'Both access and insertion/deletion are fast', 'Both access and insertion/deletion are slow', 'None of these'],
+      correctAnswer: 'None of these',
+      explanation: 'A linked list has O(n) access (must traverse from head). Insertion/deletion at the HEAD is O(1), but at a given position requires O(n) traversal first. So neither a, b, nor c is entirely correct for ALL positions — answer is d (none of these).',
+      tags: ['Linked-List', 'Complexity']
+    },
+    {
+      id: 'u1-t2-q14',
+      type: 'mcq',
+      topicId: 'u1-t2',
+      difficulty: 'beginner',
+      question: 'What is true of a list (as an ADT)?',
+      options: ['Can access the ith element directly', 'Cannot be empty', 'Every element has a position (ordinal position)', 'Can grow indefinitely'],
+      correctAnswer: 'Every element has a position (ordinal position)',
+      explanation: 'By definition, a list is a sequence where every element occupies an ordinal position (1st, 2nd, 3rd...). Lists CAN be empty. Direct access is not guaranteed (depends on implementation). Growth depends on memory.',
+      tags: ['List-ADT', 'Properties']
+    },
+    {
+      id: 'u1-t2-q15',
+      type: 'mcq',
+      topicId: 'u1-t2',
+      difficulty: 'intermediate',
+      question: 'Which operation on a linked list always requires the fewest operations?',
+      options: ['Add at the beginning', 'Add in the middle', 'Find the midpoint', 'Remove an element at the end'],
+      correctAnswer: 'Add at the beginning',
+      explanation: 'Adding at the beginning of a linked list is always O(1) — just create a new node and point its next to the current head, then update head. All other operations require traversal: O(n).',
+      tags: ['SLL-Operations', 'Complexity']
     }
   ],
   programmingProblems: [

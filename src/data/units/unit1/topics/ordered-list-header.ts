@@ -635,6 +635,61 @@ int main() {
       correctAnswer: 'Dereferencing prev->next_ crashes',
       explanation: 'Since prev starts at ptr_list->head_ (which is NULL), attempting to access ptr_list->head_->next_ for pres immediately triggers a Segmentation Fault.',
       tags: ['debug']
+    },
+    {
+      id: 'u1-t7-q11',
+      type: 'mcq',
+      topicId: 'u1-t7',
+      difficulty: 'intermediate',
+      question: 'list_t has a field count_ that tracks the number of components in the list. This implies:',
+      options: ['count_ must be updated on every insertion and deletion', 'Finding the number of components still requires traversal of the whole list', 'This change is not allowed as it affects the client', 'None of these'],
+      correctAnswer: 'count_ must be updated on every insertion and deletion',
+      explanation: 'If count_ is maintained, it must be incremented on insert and decremented on delete. In return, getting the count is O(1) instead of O(n). The client is NOT affected — this is an internal implementation detail hidden behind the ADT interface.',
+      tags: ['Header-Node', 'count-field']
+    },
+    {
+      id: 'u1-t7-q12',
+      type: 'mcq',
+      topicId: 'u1-t7',
+      difficulty: 'intermediate',
+      question: 'Adding at the END of a list (with a header node but no tail pointer):',
+      options: ['May require only a few operations independent of the length of the list', 'Always requires operations proportional to the length of the list', 'Can never support such an operation', 'None of these'],
+      correctAnswer: 'Always requires operations proportional to the length of the list',
+      explanation: 'Without a tail pointer, inserting at the end requires traversing the entire list to find the last node: O(n). With a tail pointer, it would be O(1). This is a key motivation for maintaining a tail pointer in addition to the header node.',
+      tags: ['Header-Node', 'Insert-End', 'Complexity']
+    },
+    {
+      id: 'u1-t7-q13',
+      type: 'spot-bug',
+      topicId: 'u1-t7',
+      difficulty: 'intermediate',
+      question: 'void what(list_t *ptr_list) { free(ptr_list->head_); } What does this do?',
+      options: ['Frees all nodes in the list', 'Frees all but the first node', 'Frees only the first (header) node; rest of the list is still accessible but leaked', 'None of these'],
+      correctAnswer: 'Frees only the first (header) node; rest of the list is still accessible but leaked',
+      explanation: 'free() only releases the memory of the single node pointed to by ptr_list->head_. The remaining nodes are NOT freed — their memory is leaked. To free the entire list, you must traverse it node by node and free each.',
+      tags: ['Header-Node', 'free', 'Memory-Leak']
+    },
+    {
+      id: 'u1-t7-q14',
+      type: 'mcq',
+      topicId: 'u1-t7',
+      difficulty: 'intermediate',
+      question: 'The header node is a dummy node added at the BEGINNING of the list. This:',
+      options: ['Makes insertion simpler (eliminates the empty-list special case)', 'Makes deletion simpler', 'Makes searching simpler', 'None of these'],
+      correctAnswer: 'Makes insertion simpler (eliminates the empty-list special case)',
+      explanation: 'Without a header node, inserting into an empty list is a special case (head must be updated). With a header node, the list is never truly empty — there is always at least the dummy node. This means insert always has a predecessor to link from, eliminating the if-empty branch.',
+      tags: ['Header-Node', 'Dummy-Node', 'Insertion']
+    },
+    {
+      id: 'u1-t7-q15',
+      type: 'mcq',
+      topicId: 'u1-t7',
+      difficulty: 'intermediate',
+      question: 'The TAILER node is a dummy node added at the END of the list. This:',
+      options: ['Makes insertion simpler', 'Makes deletion simpler (eliminates the last-node special case)', 'Makes searching simpler', 'None of these'],
+      correctAnswer: 'Makes deletion simpler (eliminates the last-node special case)',
+      explanation: 'Without a tailer node, deleting the last real node requires special handling (the next pointer of the new last node must become NULL). With a tailer node, the deleted node always has a successor (the dummy tailer), so deletion code is uniform.',
+      tags: ['Tailer-Node', 'Dummy-Node', 'Deletion']
     }
   ],
   programmingProblems: [

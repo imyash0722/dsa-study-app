@@ -769,6 +769,39 @@ int main() {
       correctAnswer: '0',
       explanation: 'The height is the number of edges on the longest path to a leaf. A tree with one node has 0 edges.',
       tags: ['properties', 'height']
+    },
+    {
+      id: 'u2-t6-q11',
+      type: 'mcq',
+      topicId: 'u2-t6',
+      difficulty: 'intermediate',
+      question: 'The number of EDGES in a tree having n nodes is:',
+      options: ['Depends on whether binary tree or not', 'Always n-1', '2n as each node has 2 pointers', 'Can vary from 1 to n'],
+      correctAnswer: 'Always n-1',
+      explanation: 'A tree with n nodes always has exactly n-1 edges. This is a fundamental property of trees (connected acyclic graphs). Each node except the root has exactly one parent edge. So edges = nodes - 1 = n-1, regardless of the type of tree.',
+      tags: ['Tree-Properties', 'Edges']
+    },
+    {
+      id: 'u2-t6-q12',
+      type: 'mcq',
+      topicId: 'u2-t6',
+      difficulty: 'intermediate',
+      question: 'The longest path from the root to a leaf in a binary tree of n nodes has length at most:',
+      options: ['n-1', 'log2(n)', 'n', 'n/2'],
+      correctAnswer: 'n-1',
+      explanation: 'In the worst case (a completely degenerate/skewed tree where each node has exactly one child), the tree degenerates into a linked list of depth n-1. The longest path has n-1 edges (from root through n-1 levels to the single leaf). For balanced trees it would be log2(n) but the MAXIMUM is n-1.',
+      tags: ['Tree-Properties', 'Height', 'Worst-Case']
+    },
+    {
+      id: 'u2-t6-q13',
+      type: 'mcq',
+      topicId: 'u2-t6',
+      difficulty: 'intermediate',
+      question: 'The maximum number of LEAVES in a binary tree of n nodes is:',
+      options: ['n-1', 'log2(n)', 'floor(n/2) + 1', 'floor((n+1)/2)'],
+      correctAnswer: 'floor((n+1)/2)',
+      explanation: 'In a full binary tree (every node has 0 or 2 children), leaves = ceil(n/2) = floor((n+1)/2). For n=7: floor(8/2)=4 leaves. For n=4: floor(5/2)=2 leaves. This is the maximum achievable — a full binary tree maximizes leaf count.',
+      tags: ['Binary-Tree', 'Leaves', 'Maximum']
     }
   ],
   programmingProblems: [

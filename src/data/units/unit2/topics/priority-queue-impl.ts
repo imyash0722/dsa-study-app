@@ -806,6 +806,72 @@ job_t deque(queue_t *ptr_queue) {
       correctAnswer: 'B, D, A, C',
       explanation: 'B and D both have priority 4. B was inserted first, so FIFO gives B before D. After removing B and D, A has priority 2, C has priority 1. So order is B, D, A, C.',
       tags: ['Priority-Queue', 'FIFO-Ties', 'Trace']
+    },
+    {
+      id: 'u2-t3-q21',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'beginner',
+      question: 'Which statement correctly distinguishes a priority queue from an ordinary queue?',
+      options: ['A priority queue allows insertion but not deletion', 'An ordinary queue always uses priorities', 'A priority queue determines deletion primarily by priority, not insertion order', 'An ordinary queue cannot be implemented using an array'],
+      correctAnswer: 'A priority queue determines deletion primarily by priority, not insertion order',
+      explanation: 'An ordinary queue follows strict FIFO — removal is always from the front in insertion order. A priority queue overrides this: the element with the highest priority is removed regardless of when it was inserted. This is the defining difference.',
+      tags: ['Priority-Queue', 'vs-Queue']
+    },
+    {
+      id: 'u2-t3-q22',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'beginner',
+      question: 'Which of the following does NOT typically use a priority queue?',
+      options: ['Patient management (triage)', 'Scheduling processes in an operating system', 'Managing function calls (call stack)', 'Selecting the next print job from the spool based on priority'],
+      correctAnswer: 'Managing function calls (call stack)',
+      explanation: 'Function calls use a STACK (LIFO), not a priority queue. Patient triage (urgent patients first), OS scheduling (higher-priority processes first), and priority-based print spooling all use priority queues. The call stack manages returns in LIFO order, which is unrelated to priority.',
+      tags: ['Priority-Queue', 'Applications']
+    },
+    {
+      id: 'u2-t3-q23',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'Which statement best describes enqueue in a priority queue implemented using an UNORDERED array?',
+      options: ['Can add at the beginning; requires few operations independent of size', 'Can add at the end; requires few operations independent of number of elements', 'Should insert in the middle', 'Should depend on the priority'],
+      correctAnswer: 'Can add at the end; requires few operations independent of number of elements',
+      explanation: 'In an unordered array PQ, elements are inserted at the end (or anywhere) without maintaining order. This is O(1). The cost is paid at dequeue: O(n) scan to find the highest-priority element. Enqueue is fast precisely because we do not sort on insert.',
+      tags: ['Unordered-Array-PQ', 'Enqueue-Complexity']
+    },
+    {
+      id: 'u2-t3-q24',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'Which statement best describes enqueue in a priority queue implemented using an ORDERED array?',
+      options: ['Can add at the beginning; requires few operations', 'Can add at the end; requires few operations', 'Should insert in the correct sorted position (depends on priority)', 'None of these'],
+      correctAnswer: 'Should insert in the correct sorted position (depends on priority)',
+      explanation: 'In an ordered array PQ, elements are maintained in sorted order by priority. Inserting requires finding the correct position (O(n) scan) and shifting elements. The benefit is O(1) dequeue (just remove from the end or beginning). Enqueue is expensive but dequeue is cheap.',
+      tags: ['Ordered-Array-PQ', 'Enqueue-Complexity']
+    },
+    {
+      id: 'u2-t3-q25',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'In a priority queue implemented using an ORDERED list, which is correct?',
+      options: ['Both enqueue and dequeue require O(n) operations', 'Both require O(1) operations', 'Enqueue requires more operations than dequeue', 'Dequeue requires more operations than enqueue'],
+      correctAnswer: 'Enqueue requires more operations than dequeue',
+      explanation: 'Ordered list PQ: enqueue must find the correct sorted position (O(n) traversal to find where to insert). Dequeue removes from the front/end where the highest-priority element always sits (O(1)). So enqueue is O(n) and dequeue is O(1) — enqueue costs more.',
+      tags: ['Ordered-List-PQ', 'Complexity-Trade-off']
+    },
+    {
+      id: 'u2-t3-q26',
+      type: 'mcq',
+      topicId: 'u2-t3',
+      difficulty: 'intermediate',
+      question: 'Deinitializing (destroying) a priority queue requires:',
+      options: ['A few operations in an array implementation', 'A few operations in a list implementation', 'Operations proportional to number of elements in an array implementation', 'Freeing resources in an array implementation'],
+      correctAnswer: 'A few operations in an array implementation',
+      explanation: 'Array-based PQ: deinit just frees the array (one free call) — O(1). List-based PQ: each node was individually malloc-ed, so deinit must traverse the list and free each node individually — O(n). Arrays are cheaper to destroy.',
+      tags: ['Deinitialize', 'Array-vs-List']
     }
   ],
   programmingProblems: [
