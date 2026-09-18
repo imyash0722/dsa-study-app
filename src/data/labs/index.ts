@@ -1,0 +1,9 @@
+export { lab1IoOperators } from './lab1-io-operators';
+export { lab2ArraysPointers } from './lab2-arrays-pointers';
+export { lab3StringsStructs } from './lab3-strings-structs';
+export { lab4StructArrays } from './lab4-struct-arrays';
+export { lab5FileRedirection } from './lab5-file-redirection';
+export { lab6FileSorting } from './lab6-file-sorting';
+export { lab7OrderedList } from './lab7-ordered-list';
+export { lab8PriorityScheduling } from './lab8-priority-scheduling';
+export { lab9UnionsEnums } from './lab9-unions-enums';

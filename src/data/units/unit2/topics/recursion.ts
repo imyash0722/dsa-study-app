@@ -1,0 +1,373 @@
+import type { Topic } from '../../../../types';
+
+export const recursion: Topic = {
+  id: 'u2-t9',
+  unitId: 'unit-2',
+  title: 'Recursion',
+  slug: 'recursion',
+  description: `Recursion is one of the most intellectually demanding concepts in programming, yet once understood, it provides one of the most elegant problem-solving techniques available. A recursive function is one that calls itself — either directly or indirectly — as part of its own computation. This self-reference is not circular reasoning: it works because each recursive call operates on a smaller or simpler instance of the original problem, and eventually a call reaches a trivially simple case (the base case) that can be answered directly without further recursion. Every valid recursive function requires both a base case (which terminates the recursion) and a recursive case (which reduces the problem and delegates to a deeper call).
+
+At the runtime level, each recursive call pushes a new stack frame onto the call stack, containing the function's local variables, parameters, and return address. As the recursion deepens, the stack grows proportionally — a function that recurses n times allocates n stack frames. This has two critical implications: first, deep recursion can exhaust the stack space (typically 1–8 MB on modern systems), causing a stack overflow crash; second, the stack frame tower constitutes an implicit data structure that records the computation's history, enabling elegant solutions to problems that would require explicit stacks or complex iteration in an iterative approach.
+
+Recursion is not merely a mathematical curiosity — it is the natural solution for inherently hierarchical and divide-and-conquer problems: traversing trees and graphs, parsing nested expressions, implementing quicksort and mergesort, generating permutations, and solving puzzles like the Towers of Hanoi. Understanding recursion also deepens your understanding of the call stack, because visualising the winding phase (where calls accumulate) and the unwinding phase (where results propagate back through returning calls) is essential for tracing, debugging, and optimising recursive code.`,
+  difficulty: 'advanced',
+  prerequisites: ['u2-t6'],
+  estimatedMinutes: 90,
+  subtopics: [
+    {
+      id: 'u2-t9-s1',
+      title: 'Recursion Fundamentals',
+      slug: 'recursion-fundamentals',
+      description: `A recursive function is a function that calls itself, either directly or indirectly, as part of its own computation. This is not circular reasoning — it works because each recursive call operates on a smaller or simpler version of the original problem, and eventually a call is made that is so simple it can be answered directly without further recursion. That trivially simple case is called the base case, and it is the absolute foundation upon which the entire recursive computation rests. The recursive case is the part of the function that breaks the current problem into a smaller instance and delegates it to another call of itself. Every valid recursive function must have both components: without a base case, the recursion never terminates; without a recursive case, the function is not recursive at all.
+
+The base case is best understood not as "the simple case" but as a termination condition — the precise mathematical or logical predicate under which the function can return a concrete result without making any further calls. For factorial, this is n <= 1 (because 0! and 1! are both defined as 1). For summing digits, it is n == 0 (a number with no digits has a digit sum of 0). The recursive case must make progress toward this termination condition with every call: factorial(n) calls factorial(n - 1), reducing n by 1 each time, guaranteeing that n will eventually reach 1. If the recursive case fails to make progress — for example, if factorial(n) accidentally called factorial(n) instead of factorial(n - 1) — the function enters infinite recursion.
+
+Infinite recursion is not merely an algorithmic error; it is a runtime catastrophe that crashes the program. Each function call allocates a new stack frame on the call stack, consuming memory for local variables, parameters, and the return address. The call stack has a finite size, typically between 1 and 8 megabytes depending on the operating system and platform settings. Infinite recursion fills this space completely, and when the next call attempts to allocate a frame beyond the stack boundary, the operating system terminates the process with a segmentation fault or stack overflow error. Understanding this mechanism — that recursion has a concrete memory cost proportional to the depth of the call chain — is essential for choosing between recursive and iterative solutions.`,
+      keyPoints: [
+        'A recursive function is one that calls itself within its own body. This might seem circular, but it works because each call handles a smaller version of the problem, and eventually a call is made that is so simple it can be answered directly without further recursion.',
+        'Every recursive function has two mandatory parts: the base case and the recursive case. The base case is the condition under which the function returns a result directly, without calling itself again. The recursive case is where the function calls itself with a modified (smaller) argument, moving closer to the base case with each call. Forgetting the base case is the single most common recursion bug.',
+        'The base case is the foundation of recursion — it is the "ground floor" that stops the descent. Without it, the function calls itself infinitely, creating new stack frames until the call stack runs out of memory. This is called a stack overflow, and the program crashes immediately.',
+        'The recursive case must make progress toward the base case. If factorial(n) calls factorial(n - 1), then n decreases by 1 each time, eventually reaching 1 or 0 (the base case). If the recursive case does not bring you closer to the base case (for example, if you accidentally called factorial(n) instead of factorial(n - 1)), you get infinite recursion.',
+        'Infinite recursion crashes the program with a stack overflow because each function call adds a new stack frame (containing parameters, local variables, and a return address). The stack has a finite size (typically 1–8 MB), and infinite recursion fills it completely, causing the operating system to kill the process.',
+      ],
+      codeExamples: [
+        {
+          id: 'u2-t9-s1-ex1',
+          title: 'Factorial using Recursion',
+          code: '#include <stdio.h>\n\nint factorial(int n) {\n    /* 1. Base Case: stop when n is 1 or 0 */\n    if (n <= 1) {\n        return 1;\n    }\n    \n    /* 2. Recursive Case: n * factorial(n - 1) */\n    return n * factorial(n - 1);\n}\n\nint main(void) {\n    printf("Factorial of 4 is %d\\n", factorial(4));\n    return 0;\n}',
+          language: 'c',
+          explanation: 'This is the canonical recursion example and the one you should understand completely before moving to more complex problems. The key insight is how the computation unfolds: factorial(4) cannot return immediately because it needs the result of factorial(3). So it pauses (its stack frame stays alive) and calls factorial(3). factorial(3) needs factorial(2), so it pauses and calls factorial(2). This continues until factorial(1) hits the base case and returns 1 directly. Now the "unwinding" begins: factorial(2) receives the 1 and computes 2 * 1 = 2. factorial(3) receives the 2 and computes 3 * 2 = 6. factorial(4) receives the 6 and computes 4 * 6 = 24. The computation flows downward (winding) and then upward (unwinding).',
+          expectedOutput: 'Factorial of 4 is 24',
+          lineBreakdown: [
+            { lineNumber: 5, code: '    if (n <= 1) { return 1; }', explanation: 'The Base Case. Without this, it would try to calculate factorial(0), factorial(-1), infinitely until crashing.' },
+            { lineNumber: 9, code: '    return n * factorial(n - 1);', explanation: 'The Recursive Case. The problem is made smaller (n-1).' },
+          ],
+          relatedTopicIds: [],
+        },
+        {
+          id: 'u2-t9-s1-ex2',
+          title: 'Missing Base Case (Stack Overflow)',
+          code: '#include <stdio.h>\n\nvoid crashMe(int n) {\n    printf("%d\\n", n);\n    crashMe(n + 1); /* Calls itself FOREVER */\n}\n\nint main(void) {\n    /* crashMe(1); --> UNCOMMENT TO CRASH */\n    printf("Infinite recursion causes Stack Overflow!\\n");\n    return 0;\n}',
+          language: 'c',
+          explanation: 'This function has no base case — no condition under which it stops calling itself. Every call to crashMe creates a new stack frame on the call stack, and since no call ever returns, the frames pile up indefinitely. The call stack has a fixed size (typically 1–8 MB depending on the OS and platform settings). When all that memory is consumed, the operating system detects the violation and terminates the program with a segmentation fault or a "stack overflow" error. This is not a bug that produces wrong results — it is a crash that kills the program entirely.',
+          expectedOutput: 'Infinite recursion causes Stack Overflow!',
+          lineBreakdown: [
+            { lineNumber: 5, code: '    crashMe(n + 1);', explanation: 'There is no `if` statement to stop this. It will run until the OS kills the program.' },
+          ],
+          relatedTopicIds: ['u2-t6'],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u2-t9-s1-cm1',
+          title: 'Forgetting the Base Case',
+          wrongCode: 'int sum(int n) {\n    return n + sum(n - 1);\n}',
+          correctCode: 'int sum(int n) {\n    if (n <= 0) return 0;\n    return n + sum(n - 1);\n}',
+          explanation: 'This is the most dangerous recursion bug, and it is surprisingly easy to introduce. Without the base case if (n <= 0) return 0, the function will call sum(n - 1) until n reaches 0, then -1, then -2, continuing forever into negative infinity. Even if you intended n to always be positive, defensive programming demands a base case that handles the termination condition. A good habit is to write the base case first, before writing the recursive case, ensuring that termination is guaranteed.',
+          consequence: 'Stack overflow crash. The function calls itself with ever-decreasing values of n, creating infinite stack frames until the program is killed by the OS.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u2-t9-s1-ic1',
+          title: 'Recursion vs Iteration Tradeoffs',
+          content: 'This question tests whether you understand the tradeoffs between recursion and iteration. Recursion shines for problems that have a naturally recursive structure: tree traversals, graph searches, divide-and-conquer algorithms (like merge sort and quicksort), and parsing nested data (like JSON or mathematical expressions). These problems are awkward to write iteratively because they require manually managing a stack data structure. However, recursion has costs: each call adds a stack frame (memory overhead) and involves function call overhead (pushing and popping the stack). For simple linear problems like summing numbers or computing factorial, an iterative loop is typically more efficient. The key insight: any recursive algorithm can be rewritten iteratively (and vice versa), but the recursive version is often clearer for hierarchical problems while the iterative version is more efficient for linear problems.',
+          relatedTopicIds: [],
+          frequency: 'common',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u2-t9-s1-cp1',
+          title: 'Recursion Basics',
+          description: 'Verify the core components of recursion.',
+          criteria: [
+            'Identify the base case and recursive case in a given function',
+            'Explain what a Stack Overflow is and what causes it',
+          ],
+          topicId: 'u2-t9',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u2-t9-s1-rc1',
+          front: 'What are the two mandatory parts of a recursive function?',
+          back: '1. The Base Case (when to stop).\n2. The Recursive Case (making the problem smaller and calling itself).',
+          topicId: 'u2-t9',
+          tags: ['recursion', 'basics'],
+        },
+        {
+          id: 'u2-t9-s1-rc2',
+          front: 'What happens if you forget the base case?',
+          back: 'Infinite recursion, leading to a Stack Overflow crash (running out of call stack memory).',
+          topicId: 'u2-t9',
+          tags: ['recursion', 'errors'],
+        },
+      ],
+    },
+    {
+      id: 'u2-t9-s2',
+      title: 'Call Stack Visualization',
+      slug: 'call-stack-visualization',
+      description: `The key to understanding any recursive function is visualizing how the call stack evolves during execution. When a function calls itself recursively, the current call does not complete — it pauses, its stack frame remains allocated with all its local state frozen in place, and a new stack frame is pushed on top for the recursive call. This process repeats with each successive call, building a tower of suspended computations. This is the winding phase: the depth of the stack grows as each call delegates to a deeper one, and no results are computed because every call is waiting for its inner call to return first.
+
+The winding phase terminates when a call finally reaches the base case and returns a concrete value without making another recursive call. This moment is the inflection point of the entire computation. Now the unwinding phase begins: the most recent stack frame receives its return value, completes its postponed computation (such as a multiplication or addition), returns its own result, and is destroyed. The frame beneath it then receives that result, completes its own computation, returns, and is destroyed in turn. This cascading return propagates upward through every frame in the stack until the original call finally completes. In factorial(4), the winding phase builds four frames (factorial(4), factorial(3), factorial(2), factorial(1)), and the unwinding phase computes 1, then 2*1=2, then 3*2=6, then 4*6=24.
+
+Tracing these two phases on paper — drawing each frame as a box showing the function name, its argument values, and what it is waiting for — is the single most effective technique for understanding recursive functions. Stack the boxes vertically with the deepest call at the bottom, trace the return values flowing upward, and you will see that recursion is not magic but a precise mechanical process governed by the call stack. This tracing skill transfers directly to the GDB debugger, where the backtrace command shows you the exact stack of active function calls at any point during execution, making it an invaluable tool for debugging recursive programs.`,
+      keyPoints: [
+        'The winding phase is when the function calls itself repeatedly, building up stack frames. During this phase, each call "pauses" its own computation and delegates to a deeper call. No results are computed yet (unless the function does work before the recursive call, which is the case for "head recursion" or pre-order processing).',
+        'The base case hit is the turning point: the deepest call reaches the condition where it can return a concrete value without making another recursive call. This concrete value is the seed from which all subsequent computations grow.',
+        'The unwinding phase is when stack frames pop off one by one, each using the returned value from the call below to complete its own computation. In factorial, the unwinding phase is where the multiplications actually happen: 1, then 2*1, then 3*2, then 4*6.',
+        'Visualizing the call stack on paper is the most effective technique for understanding recursion. Draw each call as a box showing the function name, its arguments, and what it is waiting for. Stack the boxes vertically, with the deepest (base case) at the bottom. Then trace the return values going back up.',
+      ],
+      codeExamples: [
+        {
+          id: 'u2-t9-s2-ex1',
+          title: 'Sum of Digits (Tracing Execution)',
+          code: '#include <stdio.h>\n\nint sumDigits(int n) {\n    if (n == 0) return 0; /* Base */\n    \n    /* Recursive: last digit + sum of rest */\n    return (n % 10) + sumDigits(n / 10); \n}\n\nint main(void) {\n    printf("Sum of 123 is %d\\n", sumDigits(123));\n    return 0;\n}',
+          language: 'c',
+          explanation: 'This example is excellent for practicing stack tracing because the recursion is simple enough to trace completely. sumDigits(123) extracts the last digit (123 % 10 = 3) and then waits for sumDigits(12) to compute the sum of the remaining digits. sumDigits(12) extracts 2 and waits for sumDigits(1). sumDigits(1) extracts 1 and waits for sumDigits(0). sumDigits(0) hits the base case and returns 0. Now the unwinding begins: sumDigits(1) computes 1 + 0 = 1. sumDigits(12) computes 2 + 1 = 3. sumDigits(123) computes 3 + 3 = 6. The pattern is always the same: extract the last digit (n % 10), remove it (n / 10), and recurse on the remainder.',
+          expectedOutput: 'Sum of 123 is 6',
+          lineBreakdown: [
+            { lineNumber: 7, code: '    return (n % 10) + sumDigits(n / 10);', explanation: 'Current digit (n%10) is put on hold. The function calls itself with the remaining digits (n/10).' },
+          ],
+          relatedTopicIds: [],
+        },
+        {
+          id: 'u2-t9-s2-ex2',
+          title: 'Fibonacci (Multiple Recursion Branches)',
+          code: '#include <stdio.h>\n\n/* 0, 1, 1, 2, 3, 5, 8... */\nint fib(int n) {\n    if (n == 0) return 0; /* Base 1 */\n    if (n == 1) return 1; /* Base 2 */\n    \n    /* Two recursive calls! */\n    return fib(n - 1) + fib(n - 2);\n}\n\nint main(void) {\n    printf("Fib(5) is %d\\n", fib(5));\n    return 0;\n}',
+          language: 'c',
+          explanation: 'Fibonacci is the most important example of branching recursion: each call makes two recursive calls instead of one. fib(5) calls both fib(4) and fib(3). fib(4) calls fib(3) and fib(2). Notice that fib(3) is computed twice — once by fib(5) and once by fib(4). This redundancy creates an exponential explosion: for fib(n), the number of function calls grows roughly as O(2^n). fib(30) makes over a billion calls. This is why the naive recursive Fibonacci is a classic example of an algorithm that is elegant but impractical. The fix is memoization (caching previously computed results) or converting to an iterative solution, both of which reduce the complexity to O(n).',
+          expectedOutput: 'Fib(5) is 5',
+          lineBreakdown: [
+            { lineNumber: 5, code: '    if (n == 0) return 0;', explanation: 'First base case.' },
+            { lineNumber: 6, code: '    if (n == 1) return 1;', explanation: 'Second base case. Fibonacci needs two.' },
+            { lineNumber: 9, code: '    return fib(n - 1) + fib(n - 2);', explanation: 'Branching recursion. Creates an exponential tree of calls.' },
+          ],
+          relatedTopicIds: [],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u2-t9-s2-cm1',
+          title: 'Not returning the recursive call',
+          wrongCode: 'int find(int n) {\n    if (n == 0) return 1;\n    find(n - 1); /* Missing return! */\n}',
+          correctCode: 'int find(int n) {\n    if (n == 0) return 1;\n    return find(n - 1);\n}',
+          explanation: 'This is a subtle bug that often compiles without errors (or only warnings) but produces completely wrong results. The function computes find(n - 1), which generates the correct value through recursion, but then discards it because there is no return keyword. The return value of the function is undefined (garbage from the stack), and the caller receives that garbage instead of the computed result. The fix is trivially simple: add return before the recursive call. The takeaway: in a non-void recursive function, every path must return a value, and the recursive call must be preceded by return.',
+          consequence: 'The function returns garbage instead of the correct result. The base case returns 1 correctly, but that value is lost as the stack unwinds because no intermediate frame passes it back.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u2-t9-s2-ic1',
+          title: 'Tail Recursion',
+          content: 'A recursive function is "tail-recursive" if the recursive call is the very last operation performed — the function does nothing after the recursive call returns except pass the result to its own caller. For example, return factorial(n - 1) is tail-recursive, but return n * factorial(n - 1) is not (because multiplication happens after the recursive call). Smart compilers can optimize tail recursion into a simple loop (called tail call optimization or TCO), eliminating the stack frame overhead entirely. GCC performs this optimization at -O2 and above. However, C does not guarantee TCO, so do not rely on it for correctness — always be aware of stack depth.',
+          relatedTopicIds: [],
+          frequency: 'occasional',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u2-t9-s2-cp1',
+          title: 'Stack Unwinding',
+          description: 'Verify tracing skills.',
+          criteria: [
+            'Draw the call stack tree for fib(4)',
+            'Explain the difference between winding (calling) and unwinding (returning)',
+          ],
+          topicId: 'u2-t9',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u2-t9-s2-rc1',
+          front: 'Why is the naive recursive Fibonacci algorithm very slow?',
+          back: 'Because it branches into two calls at every step, creating an exponential O(2^N) call tree where the same values (like fib(2)) are recalculated many times over.',
+          topicId: 'u2-t9',
+          tags: ['recursion', 'performance', 'fibonacci'],
+        },
+        {
+          id: 'u2-t9-s2-rc2',
+          front: 'What is tail recursion?',
+          back: 'When the recursive call is the absolutely last action in the function. Compilers can optimize this so it doesn\'t use extra stack frames.',
+          topicId: 'u2-t9',
+          tags: ['recursion', 'optimization'],
+        },
+      ],
+    },
+  ],
+
+  theoryQuestions: [
+    {
+      id: 'u2-t9-q1',
+      type: 'mcq',
+      topicId: 'u2-t9',
+      difficulty: 'beginner',
+      question: 'What is the primary cause of a Stack Overflow error in a recursive function?',
+      options: [
+        'Returning a pointer to a local variable',
+        'Passing too many arguments',
+        'Missing or unreachable base case',
+        'Using global variables',
+      ],
+      correctAnswer: 'Missing or unreachable base case',
+      explanation: 'Without a base case, the function calls itself infinitely, creating infinite stack frames until memory runs out.',
+      tags: ['recursion', 'errors'],
+    },
+    {
+      id: 'u2-t9-q2',
+      type: 'predict-output',
+      topicId: 'u2-t9',
+      difficulty: 'intermediate',
+      question: 'What is the output?',
+      code: '#include <stdio.h>\nvoid printNum(int n) {\n    if (n == 0) return;\n    printf("%d ", n);\n    printNum(n - 1);\n}\nint main() { printNum(3); return 0; }',
+      correctAnswer: '3 2 1 ',
+      explanation: 'Because `printf` is called BEFORE the recursive call, it prints on the way down (winding phase).',
+      tags: ['recursion', 'tracing'],
+    },
+    {
+      id: 'u2-t9-q3',
+      type: 'predict-output',
+      topicId: 'u2-t9',
+      difficulty: 'advanced',
+      question: 'What is the output?',
+      code: '#include <stdio.h>\nvoid printNum(int n) {\n    if (n == 0) return;\n    printNum(n - 1);\n    printf("%d ", n);\n}\nint main() { printNum(3); return 0; }',
+      correctAnswer: '1 2 3 ',
+      explanation: 'Because `printf` is called AFTER the recursive call, it prints on the way up (unwinding phase). The stack must hit the base case (0) before any `printf` executes.',
+      tags: ['recursion', 'tracing', 'unwinding'],
+    },
+    {
+      id: 'u2-t9-q4',
+      type: 'true-false',
+      topicId: 'u2-t9',
+      difficulty: 'beginner',
+      question: 'Any problem that can be solved recursively can also be solved iteratively (using loops).',
+      correctAnswer: true,
+      explanation: 'This is a fundamental truth in computer science (Church-Turing thesis). Iteration may require manually managing a stack data structure, but it is always possible.',
+      tags: ['recursion', 'iteration'],
+    },
+    {
+      id: 'u2-t9-q5',
+      type: 'spot-bug',
+      topicId: 'u2-t9',
+      difficulty: 'intermediate',
+      question: 'Spot the bug:',
+      code: 'int sum(int n) {\n    if (n == 0) return 0;\n    sum(n - 1) + n;\n}',
+      correctAnswer: 'Missing return keyword before the recursive call.',
+      explanation: 'The function calculates `sum(n-1) + n` but does not return it. The result is discarded, and the function returns garbage.',
+      tags: ['recursion', 'syntax'],
+    },
+  ],
+
+  programmingProblems: [
+    {
+      id: 'u2-t9-new-easy',
+      title: 'Array Reverse',
+      topicId: 'u2-t9',
+      difficulty: 'beginner',
+      problemStatement: 'Reverse an array of N elements in place.',
+      constraints: ['Do not use a secondary array'],
+      sampleInput: '1 2 3',
+      sampleOutput: '3 2 1',
+      hints: ['Swap elements from both ends moving towards the center'],
+      solution: '/* Array reverse implementation */',
+      solutionExplanation: 'Swaps index i and N-1-i.',
+      dryRun: [],
+      tags: ['arrays']
+    },
+    {
+      id: 'u2-t9-new-med',
+      title: 'Matrix Diagonal Sum',
+      topicId: 'u2-t9',
+      difficulty: 'intermediate',
+      problemStatement: 'Calculate the sum of the main diagonal of an NxN matrix.',
+      constraints: ['Matrix is guaranteed to be square'],
+      sampleInput: '1 2\n3 4',
+      sampleOutput: '5',
+      hints: ['Main diagonal elements have index [i][i]'],
+      solution: '/* Diagonal sum implementation */',
+      solutionExplanation: 'Iterates and sums arr[i][i].',
+      dryRun: [],
+      tags: ['matrix']
+    },
+    {
+      id: 'u2-t9-new-hard',
+      title: 'Recursive GCD',
+      topicId: 'u2-t9',
+      difficulty: 'advanced',
+      problemStatement: 'Find the Greatest Common Divisor of two numbers using recursion (Euclidean algorithm).',
+      constraints: ['Must use recursion'],
+      sampleInput: '48 18',
+      sampleOutput: '6',
+      hints: ['gcd(a, b) = gcd(b, a % b)'],
+      solution: '/* Recursive GCD implementation */',
+      solutionExplanation: 'Implements Euclidean algorithm recursively.',
+      dryRun: [],
+      tags: ['recursion']
+    },
+    {
+      id: 'u2-t9-p1',
+      title: 'Power Function (x^y)',
+      topicId: 'u2-t9',
+      difficulty: 'beginner',
+      problemStatement: 'Write a recursive function `int power(int base, int exp)` that calculates base raised to the power of exp. Assume exp >= 0.',
+      constraints: ['Use recursion', 'Base case: any number to the power of 0 is 1'],
+      sampleInput: '2 3',
+      sampleOutput: '8',
+      hints: ['Recursive case: base * power(base, exp - 1)'],
+      solution: '#include <stdio.h>\n\nint power(int base, int exp) {\n    if (exp == 0) {\n        return 1;\n    }\n    return base * power(base, exp - 1);\n}\n\nint main(void) {\n    printf("%d\\n", power(2, 3));\n    return 0;\n}',
+      solutionExplanation: 'Very similar to factorial. x^y is just x multiplied by x^(y-1).',
+      dryRun: [
+        { step: 1, line: 11, variables: {}, output: '', explanation: 'power(2, 3) calls 2 * power(2, 2)' },
+        { step: 2, line: 7, variables: {}, output: '', explanation: 'power(2, 2) calls 2 * power(2, 1)' },
+        { step: 3, line: 7, variables: {}, output: '', explanation: 'power(2, 1) calls 2 * power(2, 0)' },
+        { step: 4, line: 4, variables: {}, output: '', explanation: 'power(2, 0) returns 1 (Base case).' },
+        { step: 5, line: 7, variables: {}, output: '', explanation: 'Unwind: 1*2=2, 2*2=4, 4*2=8.' },
+      ],
+      tags: ['recursion', 'math'],
+    },
+    {
+      id: 'u2-t9-p2',
+      title: 'Count Digits',
+      topicId: 'u2-t9',
+      difficulty: 'intermediate',
+      problemStatement: 'Write a recursive function `int countDigits(int n)` that counts how many digits are in a number.',
+      constraints: ['Use recursion', 'Assume n is positive'],
+      sampleInput: '4562',
+      sampleOutput: '4',
+      hints: ['Base case: if n < 10, return 1', 'Recursive case: 1 + countDigits(n / 10)'],
+      solution: '#include <stdio.h>\n\nint countDigits(int n) {\n    if (n < 10) {\n        return 1;\n    }\n    return 1 + countDigits(n / 10);\n}\n\nint main(void) {\n    printf("%d\\n", countDigits(4562));\n    return 0;\n}',
+      solutionExplanation: 'We shave off the last digit using `n / 10`, counting it as `1 + ...`. When the number is single-digit (less than 10), we hit the base case.',
+      dryRun: [
+        { step: 1, line: 11, variables: {}, output: '', explanation: 'count(4562) -> 1 + count(456)' },
+        { step: 2, line: 7, variables: {}, output: '', explanation: 'count(456) -> 1 + count(45)' },
+        { step: 3, line: 7, variables: {}, output: '', explanation: 'count(45) -> 1 + count(4)' },
+        { step: 4, line: 4, variables: {}, output: '', explanation: 'count(4) -> Base case: returns 1' },
+        { step: 5, line: 7, variables: {}, output: '', explanation: 'Unwind: 1+1=2, 2+1=3, 3+1=4' },
+      ],
+      tags: ['recursion', 'digits'],
+    },
+    {
+      id: 'u2-t9-p3',
+      title: 'Reverse a String Recursively',
+      topicId: 'u2-t9',
+      difficulty: 'advanced',
+      problemStatement: 'Write a recursive function `void printReverse(char *str)` that prints a string backwards. Do not modify the string, just print it.',
+      constraints: ['No loops allowed'],
+      sampleInput: '"HELLO"',
+      sampleOutput: 'OLLEH',
+      hints: ['Base case: if *str is \'\\0\', return', 'Call printReverse(str + 1) BEFORE printing *str.'],
+      solution: '#include <stdio.h>\n\nvoid printReverse(char *str) {\n    if (*str == \'\\0\') {\n        return;\n    }\n    printReverse(str + 1);\n    printf("%c", *str);\n}\n\nint main(void) {\n    printReverse("HELLO");\n    printf("\\n");\n    return 0;\n}',
+      solutionExplanation: 'A beautiful example of the call stack unwinding. We dive deep into the string (winding phase) until we hit the null terminator. Only THEN, as we return up the stack (unwinding phase), do we print the characters. This naturally reverses them!',
+      dryRun: [
+        { step: 1, line: 12, variables: {}, output: '', explanation: 'printReverse("HELLO")' },
+        { step: 2, line: 7, variables: {}, output: '', explanation: 'Dive to \'E\', \'L\', \'L\', \'O\', \'\\0\'' },
+        { step: 3, line: 4, variables: {}, output: '', explanation: 'Hit \'\\0\', return.' },
+        { step: 4, line: 8, variables: {}, output: 'O', explanation: 'Unwind to \'O\', print it.' },
+        { step: 5, line: 8, variables: {}, output: 'LLEH', explanation: 'Unwind the rest, printing L L E H.' },
+      ],
+      tags: ['recursion', 'strings', 'unwinding'],
+    },
+  ],
+};

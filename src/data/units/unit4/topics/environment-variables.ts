@@ -1,0 +1,342 @@
+import type { Topic } from '../../../../types';
+
+export const environmentVariables: Topic = {
+  id: 'u4-t6',
+  unitId: 'unit-4',
+  title: 'Environment Variables',
+  slug: 'environment-variables',
+  description: `Environment variables are a fundamental inter-process communication mechanism provided by the operating system kernel, allowing configuration data to flow from the shell (or any parent process) into a C program without modifying the program's source code, command-line arguments, or configuration files. At the kernel level, every process maintains an environment block — a contiguous region of memory containing a NULL-terminated array of null-terminated strings in the format "KEY=VALUE". When the shell executes your compiled program via the fork/exec system call sequence, the child process inherits a copy of the parent's environment block, giving it access to system-wide settings (PATH, HOME, LANG) and user-defined variables (DATABASE_URL, API_KEY, LOG_LEVEL). The C standard library exposes this mechanism through getenv() for reading and the POSIX-standard setenv()/unsetenv() for modifying the environment within the current process. Environment variables are the industry-standard mechanism for injecting secrets and configuration into server processes, container workloads (Docker, Kubernetes), and CI/CD pipelines, precisely because they keep sensitive data out of source code repositories where it could be accidentally committed and leaked.`,
+  difficulty: 'intermediate',
+  prerequisites: ['u4-t3'],
+  estimatedMinutes: 30,
+  subtopics: [
+    {
+      id: 'u4-t6-s1',
+      title: 'Reading Environment Variables',
+      slug: 'reading-env-vars',
+      description: `The getenv function, declared in <stdlib.h>, is the standard C interface for reading environment variables. It accepts a null-terminated string containing the variable name and returns a char* pointer to the corresponding value string within the process's environment block, or NULL if no variable with that name exists. The returned pointer points directly into the environment block's memory — it is not a copy. This has two critical implications: first, the returned string must never be modified by the caller, because doing so would corrupt the environment block and trigger undefined behavior (the memory may be read-only or shared with the runtime's internal bookkeeping); second, the pointer may be invalidated by a subsequent call to setenv or putenv that causes the environment block to be reallocated, so programs that need to retain an environment variable's value across such calls must copy it into a local buffer using strcpy or strdup.
+
+The NULL return from getenv is not merely an edge case — it is the expected behavior for any variable that has not been explicitly set in the current environment. Passing a NULL pointer to printf's %s format specifier is undefined behavior (some implementations print "(null)", others crash with a segmentation fault), so every getenv call must be followed by a NULL check before the value is used. This defensive pattern — char *val = getenv("KEY"); if (val != NULL) { use(val); } — is non-negotiable in production code.
+
+Environment variables are the preferred mechanism for runtime configuration in modern software deployment. In containerized environments (Docker, Kubernetes), the orchestrator injects database credentials, API endpoints, and feature flags as environment variables, allowing the same compiled binary to behave differently across development, staging, and production environments without recompilation. This approach is codified as Factor III of the Twelve-Factor App methodology, and it is the standard answer in system design interviews when asked how a C server should obtain its database password.`,
+      keyPoints: [
+        "getenv(\"KEY\"): Provided by <stdlib.h>. Returns a char* to the value string, or NULL if the key doesn't exist.",
+        "Common variables: USER (current username), HOME (user's home directory path), PATH (where the OS looks for executables).",
+        'Environment variables are widely used in modern cloud deployments (like Docker) to pass database passwords and API keys to C programs securely without hardcoding them in the source code.',
+      ],
+      codeExamples: [
+        {
+          id: 'u4-t6-s1-ex1',
+          title: 'Using getenv()',
+          code: '#include <stdio.h>\n#include <stdlib.h>\n\nint main(void) {\n    /* Request the USER variable from the OS */\n    char *user = getenv("USER");\n    \n    if (user != NULL) {\n        printf("Hello, %s!\\n", user);\n    } else {\n        printf("Hello, mysterious guest!\\n");\n    }\n    \n    /* Get a custom variable (e.g., set via terminal: export DB_PASS=1234) */\n    char *pass = getenv("DB_PASS");\n    if (pass != NULL) {\n        printf("Connecting with password: %s\\n", pass);\n    }\n    \n    return 0;\n}',
+          language: 'c',
+          explanation: "getenv is perfectly safe. It just returns a pointer to a string managed by the OS. If the OS doesn't have the variable, it returns NULL. Always check for NULL!",
+          expectedOutput: 'Hello, tin!\n(Assuming tin is your OS username)',
+          lineBreakdown: [
+            { lineNumber: 6, code: '    char *user = getenv("USER");', explanation: 'Asks the OS for the value of "USER".' },
+            { lineNumber: 8, code: '    if (user != NULL) {', explanation: 'Crucial check. If running on Windows, USER might be named USERNAME instead.' },
+          ],
+          relatedTopicIds: ['u3-t1'],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u4-t6-s1-cm1',
+          title: 'Modifying the returned string',
+          wrongCode: 'char *user = getenv("USER");\nuser[0] = \'A\'; /* CRASH */',
+          correctCode: 'char *user = getenv("USER");\nchar copy[100];\nstrcpy(copy, user);\ncopy[0] = \'A\';',
+          explanation: "The string returned by getenv points directly to OS-managed memory. Modifying it is undefined behavior and usually results in a Segmentation Fault. If you need to modify the string, strcpy it into your own buffer first.",
+          consequence: 'Segmentation fault.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u4-t6-s1-ic1',
+          title: 'Hardcoding vs Environment Variables',
+          content: `In system design interviews, if you are asked how a C backend server connects to a database, NEVER say "I will put the password in a #define or a string literal." Hardcoded secrets get leaked on GitHub. Always say "I will retrieve the password at runtime using getenv("DB_PASSWORD")."`,
+          relatedTopicIds: [],
+          frequency: 'common',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u4-t6-s1-cp1',
+          title: 'getenv Basics',
+          description: 'Verify usage of getenv.',
+          criteria: [
+            "What library provides getenv?",
+            "What does getenv return if the variable does not exist?",
+            "Why is it a bad idea to modify the string returned by getenv?",
+          ],
+          topicId: 'u4-t6',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u4-t6-s1-rc1',
+          front: 'What function retrieves an environment variable?',
+          back: "getenv(\"VARIABLE_NAME\")",
+          topicId: 'u4-t6',
+          tags: ['env', 'functions'],
+        },
+        {
+          id: 'u4-t6-s1-rc2',
+          front: "What does getenv return?",
+          back: "A char* pointing to the value string, or NULL if not found.",
+          topicId: 'u4-t6',
+          tags: ['env', 'pointers'],
+        },
+      ],
+    },
+    {
+      id: 'u4-t6-s2',
+      title: 'Setting Variables and the envp Parameter',
+      slug: 'setenv-envp',
+      description: `The POSIX function setenv("KEY", "VALUE", overwrite) modifies the calling process's environment block at runtime, adding a new variable or updating an existing one if the overwrite parameter is non-zero. The complementary function unsetenv("KEY") removes a variable entirely. These modifications operate on the process's private copy of the environment block, which is critically important to understand: because fork creates an independent copy of the parent's environment for each child process, changes made by setenv in a child process (your C program) are completely invisible to the parent process (the shell that launched it) and to any sibling processes. This is not a bug but a deliberate operating system security boundary — allowing arbitrary child processes to modify the parent shell's environment would create catastrophic security vulnerabilities and make process behavior unpredictable.
+
+The environment block can also be accessed in its entirety through the third, rarely-used parameter of main: int main(int argc, char *argv[], char *envp[]). The envp parameter is a NULL-terminated array of strings, each in the format "KEY=VALUE", representing every environment variable inherited by the process at startup. Unlike getenv, which performs a linear search through the environment block for a specific key, envp provides direct array access, making it useful for enumerating all variables (for example, to dump the complete environment for debugging) or for implementing custom search logic with strncmp. Note that envp is a snapshot taken at program startup; it is not updated by subsequent setenv calls, so programs that modify and then read the environment should use getenv rather than envp for consistent results.
+
+The portability of environment variable functions varies across platforms. getenv is part of the ISO C standard and is available on every conforming implementation. setenv and unsetenv are POSIX extensions, available on Linux, macOS, and BSD, but not guaranteed on all platforms (notably, Windows uses _putenv instead). Programs targeting maximum portability should wrap environment modification in platform-abstraction functions or use getenv exclusively and rely on the deployment environment (shell scripts, container configuration) to set variables before the program launches.`,
+      keyPoints: [
+        "setenv(\"KEY\", \"VALUE\", overwrite_flag): Sets an environment variable. If overwrite_flag is 1, it replaces existing values.",
+        "Changes made by setenv are TEMPORARY. They only affect your C program and any child processes it spawns. They do NOT permanently change the OS environment.",
+        "The secret 3rd argument to main: int main(int argc, char *argv[], char *envp[]).",
+        "envp is a NULL-terminated array of strings, exactly like argv, but it contains every single environment variable in \"KEY=VALUE\" format.",
+      ],
+      codeExamples: [
+        {
+          id: 'u4-t6-s2-ex1',
+          title: 'Printing All Environment Variables',
+          code: '#include <stdio.h>\n\n/* The full form of main! */\nint main(int argc, char *argv[], char *envp[]) {\n    int count = 0;\n    \n    /* Loop until we hit the NULL pointer at the end of the array */\n    while (envp[count] != NULL) {\n        printf("%s\\n", envp[count]);\n        count++;\n        \n        /* Stop after 5 just so we don\'t flood the screen */\n        if (count == 5) break;\n    }\n    \n    return 0;\n}',
+          language: 'c',
+          explanation: "This code proves that main actually receives three arguments from the OS. envp allows you to iterate over the entire environment block if you need to search for a pattern or dump the config for debugging.",
+          expectedOutput: 'XDG_SESSION_ID=2\nUSER=tin\nHOME=/home/tin\nPATH=/usr/bin:/bin\nLANG=en_US.UTF-8',
+          lineBreakdown: [
+            { lineNumber: 4, code: 'int main(int argc, char *argv[], char *envp[]) {', explanation: 'The final boss form of main.' },
+            { lineNumber: 8, code: '    while (envp[count] != NULL) {', explanation: 'Unlike argv which provides argc, envp provides no count. You must loop until you hit a NULL pointer.' },
+          ],
+          relatedTopicIds: ['u3-t3'],
+        },
+        {
+          id: 'u4-t6-s2-ex2',
+          title: 'Temporary Modifications with setenv',
+          code: '#include <stdio.h>\n#include <stdlib.h>\n\nint main(void) {\n    /* Set MY_THEME to "dark". The 1 means "overwrite if exists" */\n    setenv("MY_THEME", "dark", 1);\n    \n    printf("Theme is: %s\\n", getenv("MY_THEME"));\n    \n    return 0;\n}',
+          language: 'c',
+          explanation: "setenv modifies the environment block for the current running program. Once the program exits (return 0), this variable disappears. It does NOT permanently affect the Linux/Windows system.",
+          expectedOutput: 'Theme is: dark',
+          lineBreakdown: [
+            { lineNumber: 6, code: '    setenv("MY_THEME", "dark", 1);', explanation: 'Key, Value, OverwriteFlag.' },
+          ],
+          relatedTopicIds: [],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u4-t6-s2-cm1',
+          title: 'Thinking setenv is permanent',
+          wrongCode: 'setenv("PATH", "/my/new/path", 1);\n/* User expects their terminal to permanently have this path */',
+          correctCode: '/* A program CANNOT change the parent terminal\'s environment */',
+          explanation: 'Due to OS security, a child process (your C program) gets a COPY of the environment from the parent (the terminal). You can edit your copy all you want, but you cannot edit the parent\'s original block.',
+          consequence: 'Logic errors expecting persistent configuration changes.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u4-t6-s2-ic1',
+          title: 'envp format',
+          content: "If asked how the envp strings are formatted, you must specify they are exactly in the format \"KEY=VALUE\". If you want to use them directly, you have to write string parsing logic (like strchr(envp[0], '=')) to split the key from the value.",
+          relatedTopicIds: ['u3-t2'],
+          frequency: 'rare',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u4-t6-s2-cp1',
+          title: 'envp and setenv',
+          description: 'Verify understanding of the full environment block.',
+          criteria: [
+            "What is the third argument of main called, and what is its data type?",
+            "How do you know when to stop looping through envp?",
+            "If your C program calls setenv(\"A\", \"B\", 1), can other programs on your computer see that variable?",
+          ],
+          topicId: 'u4-t6',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u4-t6-s2-rc1',
+          front: "What is the full signature of the main function including environment variables?",
+          back: `int main(int argc, char *argv[], char *envp[])`,
+          topicId: 'u4-t6',
+          tags: ['env', 'main'],
+        },
+      ],
+    },
+  ],
+
+  theoryQuestions: [
+    {
+      id: 'u4-t6-q1',
+      type: 'mcq',
+      topicId: 'u4-t6',
+      difficulty: 'beginner',
+      question: 'Which function retrieves the value of an environment variable?',
+      options: ['readenv()', 'getenv()', 'pullenv()', 'os_env()'],
+      correctAnswer: 'getenv()',
+      explanation: "getenv is the standard library function provided by <stdlib.h>.",
+      tags: ['env', 'functions'],
+    },
+    {
+      id: 'u4-t6-q2',
+      type: 'true-false',
+      topicId: 'u4-t6',
+      difficulty: 'intermediate',
+      question: "If you change an environment variable inside a C program using setenv, the change is permanently saved to the Operating System.",
+      correctAnswer: false,
+      explanation: 'Changes are strictly temporary and localized to the currently running C process.',
+      tags: ['env', 'os'],
+    },
+    {
+      id: 'u4-t6-q3',
+      type: 'predict-output',
+      topicId: 'u4-t6',
+      difficulty: 'intermediate',
+      question: 'Assume the environment variable "DEBUG_MODE" is NOT set on the computer. What happens?',
+      code: 'char *debug = getenv("DEBUG_MODE");\nif (debug) printf("Debugging");\nelse printf("Normal");',
+      correctAnswer: 'Normal',
+      explanation: "If the variable doesn't exist, getenv returns NULL. The if (debug) check evaluates NULL as false, so it prints \"Normal\".",
+      tags: ['env', 'pointers'],
+    },
+    {
+      id: 'u4-t6-q4',
+      type: 'spot-bug',
+      topicId: 'u4-t6',
+      difficulty: 'beginner',
+      question: 'Spot the bug in this program designed to greet the user:',
+      code: 'int main() {\n    printf("Welcome %s", getenv("USER_ACCOUNT"));\n    return 0;\n}',
+      correctAnswer: 'No NULL check before printing.',
+      explanation: "If \"USER_ACCOUNT\" does not exist, getenv returns NULL. Passing NULL to %s in printf causes Undefined Behavior (often a segfault or printing \"(null)\").",
+      tags: ['env', 'bugs', 'segfault'],
+    },
+    {
+      id: 'u4-t6-q5',
+      type: 'mcq',
+      topicId: 'u4-t6',
+      difficulty: 'advanced',
+      question: "How do you determine the size of the envp array passed to main?",
+      options: [
+        "By checking the envc integer argument.",
+        "By using the sizeof(envp) operator.",
+        "By iterating through it until you encounter a NULL pointer.",
+        'It is always exactly 256 elements.'
+      ],
+      correctAnswer: "By iterating through it until you encounter a NULL pointer.",
+      explanation: "Unlike argv which has argc, there is no count integer for envp. It is terminated by a NULL pointer.",
+      tags: ['env', 'arrays', 'main'],
+    },
+  ],
+
+  programmingProblems: [
+    {
+      id: 'u4-t6-new-easy',
+      title: 'File Line Counter',
+      topicId: 'u4-t6',
+      difficulty: 'beginner',
+      problemStatement: 'Count the number of lines in a text file.',
+      constraints: ['Use fgetc'],
+      sampleInput: 'File with 3 lines',
+      sampleOutput: '3',
+      hints: ['Count occurrences of \\n'],
+      solution: '/* Line count implementation */',
+      solutionExplanation: 'Reads chars until EOF, counting newlines.',
+      dryRun: [],
+      tags: ['files']
+    },
+    {
+      id: 'u4-t6-new-med',
+      title: 'MAX Macro',
+      topicId: 'u4-t6',
+      difficulty: 'intermediate',
+      problemStatement: 'Write a preprocessor macro to find the maximum of two numbers.',
+      constraints: ['Use ternary operator'],
+      sampleInput: 'MAX(5, 10)',
+      sampleOutput: '10',
+      hints: ['Parenthesize arguments properly: ((a) > (b) ? (a) : (b))'],
+      solution: '/* Macro implementation */',
+      solutionExplanation: 'Defines robust macro with parentheses to prevent expansion bugs.',
+      dryRun: [],
+      tags: ['macros']
+    },
+    {
+      id: 'u4-t6-new-hard',
+      title: 'Variadic Sum',
+      topicId: 'u4-t6',
+      difficulty: 'advanced',
+      problemStatement: 'Write a variadic function that sums a variable number of integers.',
+      constraints: ['Use stdarg.h'],
+      sampleInput: 'sum(3, 10, 20, 30)',
+      sampleOutput: '60',
+      hints: ['First argument should be the count of numbers'],
+      solution: '/* Variadic sum implementation */',
+      solutionExplanation: 'Uses va_start, va_arg, and va_end to iterate over arguments.',
+      dryRun: [],
+      tags: ['variadic']
+    },
+    {
+      id: 'u4-t6-p1',
+      title: 'Configurable Logger',
+      topicId: 'u4-t6',
+      difficulty: 'beginner',
+      problemStatement: "Write a program that prints \"Doing work...\". If the environment variable LOG_LEVEL exists and is equal to the string \"VERBOSE\", it should additionally print \"Verbose details...\". Use strcmp.",
+      constraints: ['Check getenv() != NULL before strcmp'],
+      sampleInput: 'export LOG_LEVEL=VERBOSE',
+      sampleOutput: 'Doing work...\nVerbose details...',
+      hints: ['char *level = getenv("LOG_LEVEL");', 'if (level != NULL && strcmp(level, "VERBOSE") == 0)'],
+      solution: '#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nint main(void) {\n    printf("Doing work...\\n");\n    \n    char *level = getenv("LOG_LEVEL");\n    \n    /* Must check for NULL to avoid crashing strcmp */\n    if (level != NULL && strcmp(level, "VERBOSE") == 0) {\n        printf("Verbose details...\\n");\n    }\n    \n    return 0;\n}',
+      solutionExplanation: "This is exactly how professional CLI tools (like curl or gcc) handle debug flags. Short-circuit evaluation (&&) ensures strcmp is never called if level is NULL.",
+      dryRun: [
+        { step: 1, line: 8, variables: { level: '"VERBOSE"' }, output: '', explanation: 'getenv returns the string.' },
+        { step: 2, line: 11, variables: {}, output: 'Verbose details...\\n', explanation: 'strcmp matches. Block executes.' },
+      ],
+      tags: ['env', 'logic', 'strings'],
+    },
+    {
+      id: 'u4-t6-p2',
+      title: 'Path Printer',
+      topicId: 'u4-t6',
+      difficulty: 'intermediate',
+      problemStatement: "The PATH environment variable contains directories separated by colons (e.g., /bin:/usr/bin). Write a program that gets PATH and uses strtok to print each directory on a new line.",
+      constraints: ['Use getenv', 'Use strtok with ":"'],
+      sampleInput: '',
+      sampleOutput: 'Path 1: /bin\nPath 2: /usr/bin',
+      hints: ['Copy the getenv string to a local buffer before using strtok!'],
+      solution: '#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nint main(void) {\n    char *path = getenv("PATH");\n    if (path == NULL) return 1;\n    \n    /* strtok modifies the string, so we MUST copy the OS string first */\n    char buffer[4096];\n    strncpy(buffer, path, 4095);\n    buffer[4095] = \'\\0\';\n    \n    int count = 1;\n    char *token = strtok(buffer, ":");\n    \n    while (token != NULL) {\n        printf("Path %d: %s\\n", count++, token);\n        token = strtok(NULL, ":");\n    }\n    \n    return 0;\n}',
+      solutionExplanation: "A critical lesson. strtok destroys the string it tokenizes by injecting \\0 characters. If you run strtok directly on the pointer returned by getenv, you will corrupt the OS environment variables in memory and likely crash.",
+      dryRun: [
+        { step: 1, line: 6, variables: { path: '"/bin:/usr/bin"' }, output: '', explanation: 'Gets OS pointer.' },
+        { step: 2, line: 11, variables: { buffer: '"/bin:/usr/bin"' }, output: '', explanation: 'Safely copies data.' },
+        { step: 3, line: 15, variables: { token: '"/bin"' }, output: 'Path 1: /bin\\n', explanation: 'Tokenizes and prints.' },
+      ],
+      tags: ['env', 'strings', 'strtok'],
+    },
+    {
+      id: 'u4-t6-p3',
+      title: 'Search envp Array',
+      topicId: 'u4-t6',
+      difficulty: 'advanced',
+      problemStatement: "Using the char *envp[] parameter in main, write a program that loops through all environment variables. If it finds a variable that starts with \"USER=\", it should print that entire string and break the loop. Do not use getenv.",
+      constraints: ['Use envp argument', 'Use strncmp'],
+      sampleInput: '',
+      sampleOutput: 'Found: USER=tin',
+      hints: ['while (envp[i] != NULL)', 'strncmp(envp[i], "USER=", 5) == 0'],
+      solution: '#include <stdio.h>\n#include <string.h>\n\nint main(int argc, char *argv[], char *envp[]) {\n    int i = 0;\n    \n    while (envp[i] != NULL) {\n        /* Compare the first 5 characters */\n        if (strncmp(envp[i], "USER=", 5) == 0) {\n            printf("Found: %s\\n", envp[i]);\n            break;\n        }\n        i++;\n    }\n    \n    return 0;\n}',
+      solutionExplanation: "This is basically writing your own miniature version of getenv! We iterate through the array of strings and use strncmp to do a prefix match.",
+      dryRun: [
+        { step: 1, line: 7, variables: { i: '0' }, output: '', explanation: 'envp[0] might be "HOME=/root". strncmp fails.' },
+        { step: 2, line: 7, variables: { i: '1' }, output: '', explanation: 'envp[1] might be "USER=admin". strncmp(..., "USER=", 5) matches.' },
+        { step: 3, line: 10, variables: {}, output: 'Found: USER=admin\\n', explanation: 'Prints the raw envp string.' },
+      ],
+      tags: ['env', 'arrays', 'strings', 'main'],
+    },
+  ],
+};

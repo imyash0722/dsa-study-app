@@ -1,0 +1,331 @@
+import type { Topic } from '../../../../types';
+
+export const variableLengthArgs: Topic = {
+  id: 'u4-t5',
+  unitId: 'unit-4',
+  title: 'Variable Length Arguments',
+  slug: 'variable-length-args',
+  description: `Variadic functions — functions that accept a variable number of arguments — are one of C's most powerful and most dangerous features, enabling a single function signature to handle an arbitrary number of parameters without overloading or generics. The canonical example is printf itself: printf("%d", x) passes two arguments, while printf("%s %d %f", name, age, gpa) passes four, yet both resolve to the same function. This flexibility is implemented through the <stdarg.h> library, which provides four macros (va_list, va_start, va_arg, va_end) that allow a function to walk through the caller's stack frame and extract arguments one at a time. The mechanism is inherently type-unsafe: the compiler cannot verify that the types or number of variadic arguments match what the function expects, because the ellipsis (...) in the function signature erases all type information beyond the last named parameter. This means that mismatches between the format string and the actual arguments (e.g., passing a float where printf expects an int) produce undefined behavior rather than a compile-time error — a design trade-off that prioritises runtime flexibility over static safety, and one that has been the root cause of numerous security vulnerabilities in C programs throughout the history of computing.`,
+  difficulty: 'advanced',
+  prerequisites: ['u2-t5', 'u4-t4'],
+  estimatedMinutes: 45,
+  subtopics: [
+    {
+      id: 'u4-t5-s1',
+      title: 'The <stdarg.h> Library',
+      slug: 'stdarg-library',
+      description: `The <stdarg.h> header defines the four macros that form the variadic argument access protocol in C. The type va_list declares a variable that serves as an opaque iterator over the variadic arguments; on most architectures, this is implemented as a pointer into the stack frame. va_start(args, last_named) initialises the iterator to point just past the last named parameter in the function signature — this is why C requires at least one fixed parameter before the ellipsis, as va_start needs a known memory address from which to compute the offset to the first variadic argument. va_arg(args, type) reads the next argument from the stack, interpreting the bytes at the current position as the specified type and advancing the internal pointer by sizeof(type) bytes. va_end(args) performs any necessary cleanup (on some architectures, this is a no-op; on others, it restores stack frame integrity).
+
+The fundamental danger of this mechanism is that va_arg performs no type checking whatsoever. It reads a fixed number of bytes from the stack and reinterprets them as whatever type you specify. If the caller passed a double (8 bytes, IEEE 754 format) but the function extracts it as an int (4 bytes, two's complement), va_arg reads only the first four bytes of the double's binary representation and interprets them as an integer — producing a meaningless garbage value with no warning or error. Furthermore, if the function calls va_arg more times than the caller actually provided arguments, it reads past the end of the argument region into adjacent stack memory, producing garbage values or triggering a segmentation fault.
+
+The C language addresses this inherent unsafety through convention rather than enforcement. The most common pattern uses the first fixed argument as a count (int sum(int count, ...)), telling the function exactly how many arguments to extract. The printf family uses a more sophisticated approach: the format string itself encodes the number and types of arguments through format specifiers (%d for int, %s for char*, %f for double), allowing the function to determine at runtime what type each va_arg call should use. Modern compilers provide limited safety through format string checking attributes (__attribute__((format(printf, 1, 2))) in GCC), which enable compile-time warnings when format specifiers don't match argument types — but this protection only applies to printf-style functions, not to arbitrary variadic functions.`,
+      keyPoints: [
+        'A Variadic Function is a function that takes a variable number of arguments.',
+        "Syntax: int sum(int count, ...);. The ... is the ellipsis operator.",
+        "RULE: You MUST have at least one named, fixed argument BEFORE the ....",
+        "Because C doesn't know how many arguments you passed, the fixed argument usually tells the function the count (like count), or the types (like the format string \"%d %s\" in printf).",
+        "You must #include <stdarg.h> to use the four special macros: va_list, va_start, va_arg, and va_end.",
+      ],
+      codeExamples: [
+        {
+          id: 'u4-t5-s1-ex1',
+          title: 'Sum of N Numbers',
+          code: '#include <stdio.h>\n#include <stdarg.h>\n\n/* The first argument \'count\' tells us how many extras there are */\nint sum(int count, ...) {\n    int total = 0;\n    \n    va_list args;           /* 1. Declare a list to hold the extras */\n    va_start(args, count);  /* 2. Initialize it, pointing just past \'count\' */\n    \n    for (int i = 0; i < count; i++) {\n        /* 3. Extract the next argument, assuming it is an \'int\' */\n        total += va_arg(args, int);\n    }\n    \n    va_end(args);           /* 4. Clean up the list (Mandatory) */\n    \n    return total;\n}\n\nint main(void) {\n    printf("Sum of 3 numbers: %d\\n", sum(3, 10, 20, 30));\n    printf("Sum of 5 numbers: %d\\n", sum(5, 1, 2, 3, 4, 5));\n    return 0;\n}',
+          language: 'c',
+          explanation: "This is the standard 4-step process for reading variadic arguments. Declare va_list. Start it with va_start (providing the last known fixed argument). Read them sequentially with va_arg (providing the expected data type). Close it with va_end.",
+          expectedOutput: 'Sum of 3 numbers: 60\nSum of 5 numbers: 15',
+          lineBreakdown: [
+            { lineNumber: 5, code: 'int sum(int count, ...) {', explanation: "The ellipsis ... tells the compiler to accept any number of additional arguments." },
+            { lineNumber: 9, code: '    va_start(args, count);', explanation: "Tells the macro exactly where the variable arguments begin in memory (right after count)." },
+            { lineNumber: 13, code: '        total += va_arg(args, int);', explanation: "Reads the next chunk of memory as an int and moves the internal pointer forward." },
+          ],
+          relatedTopicIds: [],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u4-t5-s1-cm1',
+          title: 'Forgetting the count / Overreading',
+          wrongCode: 'printf("%d", sum(2, 10, 20, 30)); /* Passed 3 args, but count is 2 */\nprintf("%d", sum(5, 10, 20));     /* Passed 2 args, but count is 5 */',
+          correctCode: 'printf("%d", sum(3, 10, 20, 30));\nprintf("%d", sum(2, 10, 20));',
+          explanation: "The ... provides NO safety. If you say the count is 5, va_arg will execute 5 times. If you only actually passed 2 arguments, the last 3 calls to va_arg will read random garbage memory off the stack, leading to insane results or a SegFault.",
+          consequence: 'Reading garbage memory or Segmentation Fault.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u4-t5-s1-ic1',
+          title: 'Type Safety of Variadic Functions',
+          content: "C's variadic functions are entirely type-UNSAFE. If you pass a float (e.g., sum(1, 3.14)), but your function extracts it via va_arg(args, int), it will misinterpret the raw float bytes as an integer, resulting in a garbage number. printf solves this by requiring you to explicitly state the types in the format string (e.g., %f).",
+          relatedTopicIds: [],
+          frequency: 'common',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u4-t5-s1-cp1',
+          title: 'Variadic Basics',
+          description: 'Verify syntax and library knowledge.',
+          criteria: [
+            'What header file is required to use variadic functions?',
+            "What is the syntax for a function log_error that takes a mandatory string msg, followed by variable arguments?",
+            "What does va_arg do?",
+          ],
+          topicId: 'u4-t5',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u4-t5-s1-rc1',
+          front: 'What are the 4 macros required to read variadic arguments?',
+          back: "va_list, va_start, va_arg, va_end.",
+          topicId: 'u4-t5',
+          tags: ['variadic', 'macros'],
+        },
+        {
+          id: 'u4-t5-s1-rc2',
+          front: "Can you have a variadic function with ZERO fixed arguments? (e.g., int func(...))",
+          back: "No. C requires at least one named argument before the ... so va_start knows where to begin reading memory.",
+          topicId: 'u4-t5',
+          tags: ['variadic', 'syntax'],
+        },
+      ],
+    },
+    {
+      id: 'u4-t5-s2',
+      title: 'Building a Custom Printf',
+      slug: 'custom-printf',
+      description: `Understanding how printf works internally — by building a simplified version of it — demystifies one of the most-used functions in all of C programming and reveals the interplay between format string parsing and variadic argument extraction. At its core, printf iterates through the format string character by character. When it encounters a literal character (anything other than %), it outputs that character directly. When it encounters a % character, it reads the next character(s) to determine the format specifier: 'd' means the next variadic argument should be extracted as an int, 's' means it should be extracted as a char*, 'f' means double (not float — due to default argument promotion), and so on. For each specifier, printf calls va_arg with the corresponding type, converts the value to its string representation, and outputs it.
+
+A critical subtlety in variadic functions is the default argument promotion rule, specified by the C standard. When arguments are passed through the ellipsis (...), the compiler automatically promotes char and short to int, and float to double. This means that even if the caller writes printf("%c", 'A'), the character 'A' is promoted to an int before being placed on the stack. Inside the function, va_arg must extract it as int, not char — extracting as char triggers undefined behavior on many architectures because va_arg advances the stack pointer by the wrong amount, desynchronising all subsequent argument extractions. The caller can safely cast the extracted int back to char for display purposes.
+
+The vprintf family of functions (vprintf, vfprintf, vsprintf, vsnprintf) exists specifically to solve the problem of forwarding variadic arguments. Because C provides no syntax for passing the ... arguments from one variadic function to another, a wrapper function like log_error(const char *fmt, ...) cannot call printf(fmt, ...). Instead, it captures the variadic arguments into a va_list and passes that list to vprintf(fmt, args), which processes the format string using the provided va_list instead of its own stack frame. This pattern is the standard idiom for building custom logging, error reporting, and string formatting libraries in C.`,
+      keyPoints: [
+        "printf(\"Name: %s, Age: %d\", name, age) uses the format string as the fixed argument.",
+        'It loops through the format string character by character.',
+        "When it sees a %, it checks the next character. If it's s, it calls va_arg(args, char*). If it's d, it calls va_arg(args, int).",
+        "This is why printf crashes or prints garbage if you use the wrong format specifier!",
+      ],
+      codeExamples: [
+        {
+          id: 'u4-t5-s2-ex1',
+          title: 'Mini Printf',
+          code: '#include <stdio.h>\n#include <stdarg.h>\n\n/* A mini printf that only supports %d and %c */\nvoid mini_printf(const char *format, ...) {\n    va_list args;\n    va_start(args, format);\n    \n    for (int i = 0; format[i] != \'\\0\'; i++) {\n        if (format[i] == \'%\') {\n            i++; /* Look at the character AFTER the % */\n            if (format[i] == \'d\') {\n                int i_val = va_arg(args, int);\n                printf("%d", i_val);\n            } else if (format[i] == \'c\') {\n                /* Note: chars are promoted to ints when passed in ... */\n                int c_val = va_arg(args, int);\n                printf("%c", c_val);\n            }\n        } else {\n            putchar(format[i]); /* Print normal characters */\n        }\n    }\n    \n    va_end(args);\n}\n\nint main(void) {\n    mini_printf("Hello %c, your score is %d!\\n", \'A\', 95);\n    return 0;\n}',
+          language: 'c',
+          explanation: "This code reveals the magic behind printf. It manually parses the string, and every time it encounters a format specifier, it pulls exactly one argument out of the ... list using the correct type.",
+          expectedOutput: 'Hello A, your score is 95!',
+          lineBreakdown: [
+            { lineNumber: 11, code: '        if (format[i] == \'%\') {', explanation: 'Found a specifier! Time to pull from the variable arguments.' },
+            { lineNumber: 13, code: '                int i_val = va_arg(args, int);', explanation: 'Since it was %d, we explicitly ask va_arg to pull 4 bytes and treat it as an int.' },
+            { lineNumber: 17, code: '                int c_val = va_arg(args, int);', explanation: "Subtle C rule: char and short are automatically promoted to int when passed through .... You must pull them as int." },
+          ],
+          relatedTopicIds: ['u1-t4'],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u4-t5-s2-cm1',
+          title: 'Pulling char or short with va_arg',
+          wrongCode: 'char c = va_arg(args, char);',
+          correctCode: 'char c = (char)va_arg(args, int);',
+          explanation: "Because of \"Default Argument Promotions\" in C, any char or short passed into a variadic function is automatically converted to an int. Any float is converted to double. You MUST use int or double in va_arg, and then cast it back.",
+          consequence: 'Undefined behavior, often resulting in compilation warnings and garbage values.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u4-t5-s2-ic1',
+          title: 'vprintf Family',
+          content: "If you want to write a custom logging function log_info(char* format, ...) that prepends \"[INFO]\" and then just passes the rest to standard printf, you cannot pass ... into printf. You must use vprintf(format, args) which is specifically designed to accept a va_list.",
+          relatedTopicIds: [],
+          frequency: 'rare',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u4-t5-s2-cp1',
+          title: 'Under the Hood',
+          description: 'Verify understanding of format string parsing.',
+          criteria: [
+            "How does printf know how many arguments you passed it?",
+            "Why do you get weird bugs if you pass a float but use %d in printf?",
+          ],
+          topicId: 'u4-t5',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u4-t5-s2-rc1',
+          front: "What C rule applies to char and float variables when passed into a variadic ... function?",
+          back: "Default Argument Promotion. char and short become int. float becomes double.",
+          topicId: 'u4-t5',
+          tags: ['variadic', 'types', 'promotion'],
+        },
+      ],
+    },
+  ],
+
+  theoryQuestions: [
+    {
+      id: 'u4-t5-q1',
+      type: 'mcq',
+      topicId: 'u4-t5',
+      difficulty: 'beginner',
+      question: 'Which header file must be included to use variadic functions?',
+      options: ['<stdio.h>', '<stdlib.h>', '<stdarg.h>', '<varargs.h>'],
+      correctAnswer: '<stdarg.h>',
+      explanation: "<stdarg.h> provides va_list, va_start, va_arg, and va_end.",
+      tags: ['variadic', 'headers'],
+    },
+    {
+      id: 'u4-t5-q2',
+      type: 'true-false',
+      topicId: 'u4-t5',
+      difficulty: 'beginner',
+      question: "A C function can be defined as int calculate(...) with no fixed arguments.",
+      correctAnswer: false,
+      explanation: "C requires at least ONE fixed argument before the ... so that va_start has a memory address to base its pointer offsets on.",
+      tags: ['variadic', 'syntax'],
+    },
+    {
+      id: 'u4-t5-q3',
+      type: 'spot-bug',
+      topicId: 'u4-t5',
+      difficulty: 'intermediate',
+      question: 'Spot the bug in this variadic function:',
+      code: 'void printArgs(int count, ...) {\n    va_list args;\n    va_start(args, count);\n    for(int i=0; i<count; i++) {\n        printf("%d", va_arg(args, int));\n    }\n}',
+      correctAnswer: 'Missing va_end(args);',
+      explanation: "Every va_start MUST be matched with a va_end before the function returns. Failing to do so can corrupt the stack on some compiler architectures.",
+      tags: ['variadic', 'macros'],
+    },
+    {
+      id: 'u4-t5-q4',
+      type: 'predict-output',
+      topicId: 'u4-t5',
+      difficulty: 'advanced',
+      question: 'What happens if you run this?',
+      code: 'int sum(int count, ...) {\n    va_list a; va_start(a, count);\n    int s = va_arg(a, int) + va_arg(a, int);\n    va_end(a); return s;\n}\nint main() { printf("%d", sum(2, 5, 10, 20)); }',
+      correctAnswer: '15',
+      explanation: "The function promises it will process count args, but ignores count and just manually calls va_arg twice. It pulls 5 and 10. The 20 is completely ignored. 5 + 10 = 15.",
+      tags: ['variadic', 'operations'],
+    },
+    {
+      id: 'u4-t5-q5',
+      type: 'mcq',
+      topicId: 'u4-t5',
+      difficulty: 'intermediate',
+      question: "Why does printf(\"%d\", 3.14) print a garbage integer instead of 3?",
+      options: [
+        'Because variadic functions cannot accept floats.',
+        'Because va_arg blindly reads the raw binary float format as if it were an integer.',
+        'Because the compiler blocks it.',
+        'Because 3.14 is promoted to double.'
+      ],
+      correctAnswer: 'Because va_arg blindly reads the raw binary float format as if it were an integer.',
+      explanation: "Floating point numbers are stored in IEEE 754 format. va_arg expects standard Two's Complement integer bits. It reads the float bits and interprets them as a wild, garbage integer.",
+      tags: ['variadic', 'types', 'printf'],
+    },
+  ],
+
+  programmingProblems: [
+    {
+      id: 'u4-t5-new-easy',
+      title: 'File Line Counter',
+      topicId: 'u4-t5',
+      difficulty: 'beginner',
+      problemStatement: 'Count the number of lines in a text file.',
+      constraints: ['Use fgetc'],
+      sampleInput: 'File with 3 lines',
+      sampleOutput: '3',
+      hints: ['Count occurrences of \\n'],
+      solution: '/* Line count implementation */',
+      solutionExplanation: 'Reads chars until EOF, counting newlines.',
+      dryRun: [],
+      tags: ['files']
+    },
+    {
+      id: 'u4-t5-new-med',
+      title: 'MAX Macro',
+      topicId: 'u4-t5',
+      difficulty: 'intermediate',
+      problemStatement: 'Write a preprocessor macro to find the maximum of two numbers.',
+      constraints: ['Use ternary operator'],
+      sampleInput: 'MAX(5, 10)',
+      sampleOutput: '10',
+      hints: ['Parenthesize arguments properly: ((a) > (b) ? (a) : (b))'],
+      solution: '/* Macro implementation */',
+      solutionExplanation: 'Defines robust macro with parentheses to prevent expansion bugs.',
+      dryRun: [],
+      tags: ['macros']
+    },
+    {
+      id: 'u4-t5-new-hard',
+      title: 'Variadic Sum',
+      topicId: 'u4-t5',
+      difficulty: 'advanced',
+      problemStatement: 'Write a variadic function that sums a variable number of integers.',
+      constraints: ['Use stdarg.h'],
+      sampleInput: 'sum(3, 10, 20, 30)',
+      sampleOutput: '60',
+      hints: ['First argument should be the count of numbers'],
+      solution: '/* Variadic sum implementation */',
+      solutionExplanation: 'Uses va_start, va_arg, and va_end to iterate over arguments.',
+      dryRun: [],
+      tags: ['variadic']
+    },
+    {
+      id: 'u4-t5-p1',
+      title: 'Find the Maximum (Variadic)',
+      topicId: 'u4-t5',
+      difficulty: 'beginner',
+      problemStatement: "Write a variadic function int find_max(int count, ...) that returns the largest integer among the variable arguments. Assume count is at least 1.",
+      constraints: ['Use va_list, va_start, va_arg, va_end'],
+      sampleInput: 'find_max(4, 10, 50, 20, 5)',
+      sampleOutput: '50',
+      hints: ["Initialize max with the first va_arg.", "Loop count - 1 times comparing the next va_arg to max."],
+      solution: '#include <stdio.h>\n#include <stdarg.h>\n\nint find_max(int count, ...) {\n    va_list args;\n    va_start(args, count);\n    \n    /* Pull the first one to act as the baseline max */\n    int max = va_arg(args, int);\n    \n    for (int i = 1; i < count; i++) {\n        int current = va_arg(args, int);\n        if (current > max) {\n            max = current;\n        }\n    }\n    \n    va_end(args);\n    return max;\n}\n\nint main(void) {\n    printf("Max: %d\\n", find_max(4, 10, 50, 20, 5));\n    return 0;\n}',
+      solutionExplanation: "A standard max-finding algorithm, but the data comes from the stack via va_arg instead of an array.",
+      dryRun: [
+        { step: 1, line: 9, variables: { max: '10' }, output: '', explanation: 'Pulls the first arg (10).' },
+        { step: 2, line: 12, variables: { current: '50' }, output: '', explanation: 'Pulls next arg (50). 50 > 10, max becomes 50.' },
+      ],
+      tags: ['variadic', 'algorithms'],
+    },
+    {
+      id: 'u4-t5-p2',
+      title: 'Concatenate Strings',
+      topicId: 'u4-t5',
+      difficulty: 'intermediate',
+      problemStatement: "Write a variadic function void print_strings(int count, ...) that takes a variable number of string pointers (char*) and prints them all on one line, separated by spaces.",
+      constraints: ["Extract char* using va_arg"],
+      sampleInput: 'print_strings(3, "Hello", "World", "C");',
+      sampleOutput: 'Hello World C ',
+      hints: ['va_arg(args, char*)'],
+      solution: '#include <stdio.h>\n#include <stdarg.h>\n\nvoid print_strings(int count, ...) {\n    va_list args;\n    va_start(args, count);\n    \n    for (int i = 0; i < count; i++) {\n        /* Pull a char pointer (string) */\n        char *str = va_arg(args, char*);\n        printf("%s ", str);\n    }\n    printf("\\n");\n    \n    va_end(args);\n}\n\nint main(void) {\n    print_strings(3, "Hello", "World", "C");\n    return 0;\n}',
+      solutionExplanation: "Demonstrates that va_arg can pull ANY type, including pointers, as long as you specify the exact type correctly.",
+      dryRun: [
+        { step: 1, line: 10, variables: { str: '"Hello"' }, output: 'Hello ', explanation: 'Pulls first char* pointer.' },
+        { step: 2, line: 10, variables: { str: '"World"' }, output: 'World ', explanation: 'Pulls second char* pointer.' },
+      ],
+      tags: ['variadic', 'strings', 'pointers'],
+    },
+    {
+      id: 'u4-t5-p3',
+      title: 'Custom Logger (vprintf)',
+      topicId: 'u4-t5',
+      difficulty: 'advanced',
+      problemStatement: "Write a function void log_error(const char *format, ...) that prints \"[ERROR] \" followed by whatever formatted string the user provided. You MUST use vprintf from <stdio.h>.",
+      constraints: ['Use vprintf'],
+      sampleInput: 'log_error("Failed to open %s. Code: %d", "data.txt", 404);',
+      sampleOutput: '[ERROR] Failed to open data.txt. Code: 404',
+      hints: ["Start the va_list, pass it directly into vprintf(format, args), then va_end."],
+      solution: '#include <stdio.h>\n#include <stdarg.h>\n\nvoid log_error(const char *format, ...) {\n    va_list args;\n    va_start(args, format);\n    \n    /* Print our custom prefix */\n    printf("[ERROR] ");\n    \n    /* Pass the variable arguments directly to vprintf */\n    vprintf(format, args);\n    printf("\\n");\n    \n    va_end(args);\n}\n\nint main(void) {\n    log_error("Failed to open %s. Code: %d", "data.txt", 404);\n    return 0;\n}',
+      solutionExplanation: "This is the industry standard way to write wrapper logging functions. You cannot pass ... into printf. You MUST capture them into a va_list and pass that list to vprintf.",
+      dryRun: [
+        { step: 1, line: 9, variables: {}, output: '[ERROR] ', explanation: 'Prints the prefix.' },
+        { step: 2, line: 12, variables: {}, output: 'Failed to open data.txt. Code: 404\\n', explanation: 'vprintf processes the format string using the provided args list.' },
+      ],
+      tags: ['variadic', 'printf', 'logging'],
+    },
+  ],
+};

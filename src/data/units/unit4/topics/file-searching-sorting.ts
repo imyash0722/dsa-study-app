@@ -1,0 +1,331 @@
+import type { Topic } from '../../../../types';
+
+export const fileSearchingSorting: Topic = {
+  id: 'u4-t3',
+  unitId: 'unit-4',
+  title: 'Searching and Sorting with Files',
+  slug: 'file-searching-sorting',
+  description: `Searching and sorting data stored in files requires bridging the enormous performance gap between disk I/O and in-memory computation — a gap that spans roughly five orders of magnitude. A single random read from a mechanical hard drive takes approximately 10 milliseconds (seeking the read head to the correct track), while accessing a value in RAM takes approximately 100 nanoseconds; even solid-state drives, at roughly 100 microseconds per random read, are three orders of magnitude slower than RAM. This performance asymmetry dictates the fundamental architecture of file-based data processing in C: data must be loaded from disk into memory exactly once, all searching and sorting operations must be performed on the in-memory representation, and the final results must be written back to disk in a single sequential pass. Attempting to sort or repeatedly search data directly on disk — by calling fseek and fread for every comparison in a sort algorithm, for example — would transform an O(n log n) sort into an operation that is dominated by disk latency rather than CPU time, degrading performance by factors of thousands or more. This topic teaches the standard pipeline: read structured records from a file into an array of structs, apply the C standard library's qsort for sorting or linear/binary search for lookup, and write the processed data back to a file.`,
+  difficulty: 'advanced',
+  prerequisites: ['u4-t2', 'u3-t7', 'u2-t7'],
+  estimatedMinutes: 60,
+  subtopics: [
+    {
+      id: 'u4-t3-s1',
+      title: 'Reading File Data into Memory',
+      slug: 'reading-records-into-memory',
+      description: `The first phase of any file-based data processing pipeline is loading the file's contents into a contiguous in-memory data structure — typically a statically-allocated array of structs for datasets of known maximum size, or a dynamically-allocated array via malloc/realloc for datasets of unknown or variable size. The standard loading pattern for text files uses a while loop driven by fscanf's return value: while (fscanf(fp, "%d %49s %f", &db[count].id, db[count].name, &db[count].gpa) == 3) { count++; }. The comparison against the expected number of successfully parsed fields (3 in this case) simultaneously detects end-of-file (where fscanf returns EOF) and parsing errors (where a corrupted or malformed line causes fscanf to return fewer matches), making it a robust sentinel for the read loop.
+
+For binary files, the loading phase is dramatically simpler and faster: a single fread(array, sizeof(Record), max_count, fp) call can load the entire dataset in one kernel I/O operation, because binary records have fixed sizes and require no parsing. The return value of fread indicates how many complete records were successfully read, which becomes the effective count for subsequent operations. Binary loading avoids the overhead of format string parsing, character-to-integer conversion, and whitespace handling that text-mode fscanf must perform for every field of every record.
+
+The choice between stack allocation (Record db[100]) and heap allocation (Record *db = malloc(n * sizeof(Record))) depends on the expected dataset size. The default stack size on most systems is between 1 and 8 megabytes; attempting to allocate a million-element struct array on the stack will silently overflow it, corrupting adjacent stack frames and causing unpredictable crashes. For large or variable-size datasets, the correct approach is to make a first pass through the file to count the records (or use fseek/ftell to compute the count from the file size for binary files), allocate exactly the required memory with malloc, rewind the file, and then perform the actual data load.`,
+      keyPoints: [
+        'The standard pattern: Open file -> Count records -> Allocate array of structs -> Read records into array -> Close file.',
+        'Never sort a file directly on the disk. The disk I/O overhead of swapping bytes on a hard drive is catastrophically slow.',
+        "When reading text files, fscanf or fgets + sscanf are used to populate the struct fields.",
+        "For binary files, fread is used to load the structs massively faster.",
+      ],
+      codeExamples: [
+        {
+          id: 'u4-t3-s1-ex1',
+          title: 'Loading a Text Database',
+          code: '#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct {\n    int id;\n    char name[50];\n    float gpa;\n} Student;\n\nint main(void) {\n    FILE *fp = fopen("students.txt", "r");\n    if (!fp) return 1;\n    \n    /* Assume we know there are max 100 students */\n    Student db[100];\n    int count = 0;\n    \n    /* Read until EOF or array is full */\n    while (count < 100 && fscanf(fp, "%d %49s %f", &db[count].id, db[count].name, &db[count].gpa) == 3) {\n        count++;\n    }\n    \n    fclose(fp);\n    \n    printf("Loaded %d students into memory.\\n", count);\n    return 0;\n}',
+          language: 'c',
+          explanation: "This code transfers the slow disk data into a fast RAM array. The fscanf format string %d %49s %f parses lines like 101 Alice 3.8. We check == 3 to ensure a corrupted line doesn't break our parsing logic.",
+          expectedOutput: 'Loaded 3 students into memory.',
+          lineBreakdown: [
+            { lineNumber: 19, code: '    while (count < 100 && fscanf(...) == 3) {', explanation: 'Prevents buffer overflow (count < 100) AND ensures successful parsing (== 3 items read).' },
+            { lineNumber: 20, code: '        count++;', explanation: 'Only increments if the read was perfect.' },
+          ],
+          relatedTopicIds: ['u3-t7'],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u4-t3-s1-cm1',
+          title: 'Searching directly on disk repeatedly',
+          wrongCode: 'for (int target=1; target<=100; target++) {\n    rewind(fp);\n    while(fscanf(fp, "%d", &id) == 1) {\n        if (id == target) { /* found */ }\n    }\n}',
+          correctCode: '/* Load file ONCE into an array */\n/* Then run a fast Binary Search on the array in RAM */',
+          explanation: 'Reading the hard drive is physically moving magnetic platters or relying on SSD controllers, taking milliseconds. Reading RAM takes nanoseconds. If you do 100 linear searches directly on the file, the program will lag horribly.',
+          consequence: 'Massive performance bottleneck (Disk I/O thrashing).',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u4-t3-s1-ic1',
+          title: 'What if the file is larger than RAM?',
+          content: 'A classic Google/Amazon interview question. "How do you sort a 100 GB file if you only have 4 GB of RAM?" Answer: External Merge Sort. You read 4 GB chunks, sort them in RAM, write them to temp files on disk. Then you stream the sorted temp files line-by-line, merging them into the final file without ever loading the whole thing into RAM at once.',
+          relatedTopicIds: [],
+          frequency: 'common',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u4-t3-s1-cp1',
+          title: 'Memory vs Disk',
+          description: 'Verify understanding of performance implications.',
+          criteria: [
+            'Why is it a bad idea to sort data directly inside a file on the hard drive?',
+            'What is the standard pipeline for sorting file data?',
+          ],
+          topicId: 'u4-t3',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u4-t3-s1-rc1',
+          front: 'What is the correct 3-step process to sort data stored in a file?',
+          back: "1. Load the file data into an array in RAM.\n2. Sort the array in RAM (e.g., using qsort).\n3. Write the sorted array back to the file.",
+          topicId: 'u4-t3',
+          tags: ['file-io', 'sorting', 'performance'],
+        },
+      ],
+    },
+    {
+      id: 'u4-t3-s2',
+      title: 'Sorting In-Memory Data and Writing Back',
+      slug: 'sorting-and-writing-back',
+      description: `Once the file data resides in a contiguous array in RAM, the C standard library's qsort function provides an efficient, generic sorting facility that implements an optimised variant of quicksort (or introsort in many modern implementations) with O(n log n) average-case time complexity. qsort takes four arguments: a pointer to the array, the number of elements, the size of each element in bytes (sizeof(Record)), and a pointer to a comparator function. The comparator receives two const void* pointers to the elements being compared and must return a negative integer if the first element should precede the second, zero if they are equal, or a positive integer if the first should follow the second. This void-pointer interface is C's mechanism for achieving generic programming without templates or generics: qsort can sort arrays of any type because it treats elements as opaque blocks of bytes, relying entirely on the programmer-supplied comparator to impose an ordering.
+
+Writing correct comparators requires careful attention to type casting and edge cases. For integer fields, the common idiom return *(int*)a - *(int*)b works for ascending order but can overflow if the values span a large range (e.g., INT_MAX - INT_MIN). The safe alternative uses explicit comparison: if (x < y) return -1; if (x > y) return 1; return 0;. For floating-point fields, subtraction is unreliable due to precision issues and the existence of NaN values; explicit comparison with if/else is mandatory. For string fields, strcmp(s1->name, s2->name) provides the correct lexicographic ordering directly.
+
+After sorting, the write-back phase opens the output file in "w" mode (which truncates any existing contents to zero length) and iterates through the sorted array, writing each record using fprintf for text files or fwrite for binary files. A critical pitfall is using "a" (append) mode instead of "w": this preserves the old unsorted data and appends the sorted data at the end, doubling the file size and producing a corrupt dataset. Another subtle bug arises when using "r+" mode (read-write) without rewinding: after the read phase, the file cursor sits at EOF, so writes append rather than overwrite. The safest approach is to close the file after reading, re-open it in "w" mode for writing, and close it again when finished.`,
+      keyPoints: [
+        "qsort requires a custom comparator function that tells it how to compare two of your structs.",
+        "If sorting by a string field, use strcmp inside the comparator.",
+        'If sorting by a numeric field, subtract them (or use if/else logic for floats).',
+        "After sorting, you must fopen the file again in \"w\" mode to completely overwrite the old, unsorted data with the new sorted data.",
+      ],
+      codeExamples: [
+        {
+          id: 'u4-t3-s2-ex1',
+          title: 'Sort File by GPA',
+          code: '#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct {\n    int id;\n    float gpa;\n} Student;\n\n/* Comparator for qsort: Sort Descending by GPA */\nint compareGpa(const void *a, const void *b) {\n    Student *s1 = (Student *)a;\n    Student *s2 = (Student *)b;\n    if (s1->gpa < s2->gpa) return 1;  /* Swap so higher GPA goes first */\n    if (s1->gpa > s2->gpa) return -1;\n    return 0;\n}\n\nint main(void) {\n    /* 1. Load (Hardcoded for brevity, normally fscanf from file) */\n    Student db[3] = {{1, 3.2}, {2, 3.9}, {3, 3.5}};\n    int count = 3;\n    \n    /* 2. Sort in RAM */\n    qsort(db, count, sizeof(Student), compareGpa);\n    \n    /* 3. Write back to file */\n    FILE *fp = fopen("sorted_students.txt", "w");\n    if (!fp) return 1;\n    \n    for (int i = 0; i < count; i++) {\n        fprintf(fp, "%d %.1f\\n", db[i].id, db[i].gpa);\n    }\n    \n    fclose(fp);\n    printf("File sorted and saved.\\n");\n    return 0;\n}',
+          language: 'c',
+          explanation: "The full pipeline. qsort handles the heavy lifting in RAM. The compareGpa function explicitly casts the void* pointers back to Student* pointers so we can access the .gpa field. Finally, we loop through the array and fprintf to commit the data back to disk.",
+          expectedOutput: 'File sorted and saved.',
+          lineBreakdown: [
+            { lineNumber: 10, code: 'int compareGpa(const void *a, const void *b) {', explanation: 'qsort demands exactly this function signature.' },
+            { lineNumber: 24, code: '    qsort(db, count, sizeof(Student), compareGpa);', explanation: 'Array pointer, number of elements, size of one element, and the function pointer to the comparator.' },
+            { lineNumber: 27, code: '    FILE *fp = fopen("sorted_students.txt", "w");', explanation: 'Mode "w" wipes the file clean so we can dump the sorted array into it.' },
+          ],
+          relatedTopicIds: ['u2-t7'],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u4-t3-s2-cm1',
+          title: 'Opening the file in "a" (append) mode after sorting',
+          wrongCode: 'qsort(db, count, sizeof(Student), compareGpa);\nFILE *fp = fopen("data.txt", "a");\n/* Write array */',
+          correctCode: 'qsort(db, count, sizeof(Student), compareGpa);\nFILE *fp = fopen("data.txt", "w");\n/* Write array */',
+          explanation: "If you use append mode \"a\", the newly sorted data will just be added to the bottom of the file, leaving the old unsorted data sitting at the top. You must use \"w\" to overwrite the file completely.",
+          consequence: 'Duplicated, corrupted file data.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u4-t3-s2-ic1',
+          title: 'Why use const void *?',
+          content: "Interviewer: \"Why does qsort require void pointers?\" Answer: \"Because qsort is generic. The C library writers had no idea what structs you were going to create. By using void *, qsort can move chunks of memory around blindly, and it relies on YOUR comparator function to actually cast those raw memory bytes back into meaningful variables to make a decision.\"",
+          relatedTopicIds: [],
+          frequency: 'common',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u4-t3-s2-cp1',
+          title: 'QSort Mechanics',
+          description: 'Verify comparator implementation.',
+          criteria: [
+            'What is the mandatory signature for a qsort comparator function?',
+            'What must you do inside the comparator before you can access struct fields?',
+            'What file mode must you use to write the sorted array back to the original file?',
+          ],
+          topicId: 'u4-t3',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u4-t3-s2-rc1',
+          front: "What are the 4 arguments required by the qsort function?",
+          back: "1. Pointer to the array.\n2. Number of elements.\n3. sizeof one element.\n4. Pointer to the comparator function.",
+          topicId: 'u4-t3',
+          tags: ['sorting', 'qsort'],
+        },
+        {
+          id: 'u4-t3-s2-rc2',
+          front: "What must you do to the const void * arguments inside a qsort comparator?",
+          back: "You must cast them back to pointers of your specific struct type. (e.g., Student *s = (Student *)a;)",
+          topicId: 'u4-t3',
+          tags: ['sorting', 'pointers', 'casting'],
+        },
+      ],
+    },
+  ],
+
+  theoryQuestions: [
+    {
+      id: 'u4-t3-q1',
+      type: 'mcq',
+      topicId: 'u4-t3',
+      difficulty: 'beginner',
+      question: 'Why is it recommended to load file data into an array before sorting?',
+      options: [
+        'C compilers cannot compile code that sorts files directly.',
+        'Hard drive read/write operations are drastically slower than RAM access.',
+        'fseek cannot be used in a loop.',
+        'Arrays consume less memory than files.'
+      ],
+      correctAnswer: 'Hard drive read/write operations are drastically slower than RAM access.',
+      explanation: 'Disk I/O is the bottleneck of modern computing. Doing thousands of swap operations on a disk during a sort algorithm will take hours instead of milliseconds.',
+      tags: ['file-io', 'sorting', 'performance'],
+    },
+    {
+      id: 'u4-t3-q2',
+      type: 'spot-bug',
+      topicId: 'u4-t3',
+      difficulty: 'intermediate',
+      question: 'Spot the bug in this file sorting logic:',
+      code: 'FILE *f = fopen("data.txt", "r+");\nloadToArray(f, arr, &count);\nqsort(arr, count, sizeof(int), comp);\nfor(int i=0; i<count; i++) fprintf(f, "%d\\n", arr[i]);',
+      correctAnswer: 'The file cursor is at the EOF after reading, so fprintf will append, not overwrite.',
+      explanation: "After loadToArray finishes reading, the FILE* cursor is at the very end of the file. If you write immediately, you just add the sorted data to the bottom. You must either rewind(f) or fclose and fopen with \"w\".",
+      tags: ['file-io', 'fseek', 'bugs'],
+    },
+    {
+      id: 'u4-t3-q3',
+      type: 'true-false',
+      topicId: 'u4-t3',
+      difficulty: 'advanced',
+      question: "When reading a file of unknown size, you should allocate a massive array (e.g., Student db[1000000]) on the Stack to be safe.",
+      correctAnswer: false,
+      explanation: "Allocating massive arrays on the Stack will cause a Stack Overflow. You must use malloc (Heap) for large arrays, or better yet, read the file to count the lines, then malloc exactly the space you need, then rewind and read the data.",
+      tags: ['file-io', 'memory', 'stack'],
+    },
+    {
+      id: 'u4-t3-q4',
+      type: 'predict-output',
+      topicId: 'u4-t3',
+      difficulty: 'intermediate',
+      question: 'What does this comparator do?',
+      code: 'int comp(const void *a, const void *b) {\n    int x = *(int*)a;\n    int y = *(int*)b;\n    return y - x;\n}',
+      correctAnswer: 'Sorts integers in descending order.',
+      explanation: "Standard ascending is return x - y;. Reversing it to return y - x; forces larger numbers to the front of the array.",
+      tags: ['sorting', 'qsort'],
+    },
+    {
+      id: 'u4-t3-q5',
+      type: 'mcq',
+      topicId: 'u4-t3',
+      difficulty: 'beginner',
+      question: "After sorting an array of structs in RAM, which mode should you use to fopen the file to save the changes?",
+      options: ['"r"', '"a"', '"w"', '"r+"'],
+      correctAnswer: '"w"',
+      explanation: "Write mode (\"w\") wipes the old, unsorted file contents so you can write the clean, sorted array from scratch.",
+      tags: ['file-io', 'modes'],
+    },
+  ],
+
+  programmingProblems: [
+    {
+      id: 'u4-t3-new-easy',
+      title: 'File Line Counter',
+      topicId: 'u4-t3',
+      difficulty: 'beginner',
+      problemStatement: 'Count the number of lines in a text file.',
+      constraints: ['Use fgetc'],
+      sampleInput: 'File with 3 lines',
+      sampleOutput: '3',
+      hints: ['Count occurrences of \\n'],
+      solution: '/* Line count implementation */',
+      solutionExplanation: 'Reads chars until EOF, counting newlines.',
+      dryRun: [],
+      tags: ['files']
+    },
+    {
+      id: 'u4-t3-new-med',
+      title: 'MAX Macro',
+      topicId: 'u4-t3',
+      difficulty: 'intermediate',
+      problemStatement: 'Write a preprocessor macro to find the maximum of two numbers.',
+      constraints: ['Use ternary operator'],
+      sampleInput: 'MAX(5, 10)',
+      sampleOutput: '10',
+      hints: ['Parenthesize arguments properly: ((a) > (b) ? (a) : (b))'],
+      solution: '/* Macro implementation */',
+      solutionExplanation: 'Defines robust macro with parentheses to prevent expansion bugs.',
+      dryRun: [],
+      tags: ['macros']
+    },
+    {
+      id: 'u4-t3-new-hard',
+      title: 'Variadic Sum',
+      topicId: 'u4-t3',
+      difficulty: 'advanced',
+      problemStatement: 'Write a variadic function that sums a variable number of integers.',
+      constraints: ['Use stdarg.h'],
+      sampleInput: 'sum(3, 10, 20, 30)',
+      sampleOutput: '60',
+      hints: ['First argument should be the count of numbers'],
+      solution: '/* Variadic sum implementation */',
+      solutionExplanation: 'Uses va_start, va_arg, and va_end to iterate over arguments.',
+      dryRun: [],
+      tags: ['variadic']
+    },
+    {
+      id: 'u4-t3-p1',
+      title: 'Count Specific Word in File',
+      topicId: 'u4-t3',
+      difficulty: 'beginner',
+      problemStatement: "Write a program that opens log.txt, reads strings (words) one by one using fscanf, and counts how many times the word \"ERROR\" appears. Print the total count.",
+      constraints: ['Use fscanf with %s', 'Use strcmp'],
+      sampleInput: 'log.txt: "INFO start ERROR network ERROR disk INFO end"',
+      sampleOutput: 'ERROR count: 2',
+      hints: ['while (fscanf(fp, "%s", word) == 1) { ... }', 'strcmp(word, "ERROR") == 0'],
+      solution: '#include <stdio.h>\n#include <string.h>\n\nint main(void) {\n    FILE *fp = fopen("log.txt", "r");\n    if (fp == NULL) return 1;\n    \n    char word[100];\n    int errorCount = 0;\n    \n    /* %s reads until the next whitespace space/newline */\n    while (fscanf(fp, "%s", word) == 1) {\n        if (strcmp(word, "ERROR") == 0) {\n            errorCount++;\n        }\n    }\n    \n    fclose(fp);\n    printf("ERROR count: %d\\n", errorCount);\n    return 0;\n}',
+      solutionExplanation: 'A linear search applied directly to a file. This is acceptable (unlike sorting) because we only need to pass through the file exactly once from top to bottom.',
+      dryRun: [
+        { step: 1, line: 12, variables: { word: '"INFO"' }, output: '', explanation: 'strcmp is false.' },
+        { step: 2, line: 12, variables: { word: '"start"' }, output: '', explanation: 'strcmp is false.' },
+        { step: 3, line: 12, variables: { word: '"ERROR"' }, output: '', explanation: 'strcmp is true. count becomes 1.' },
+      ],
+      tags: ['file-io', 'searching', 'strings'],
+    },
+    {
+      id: 'u4-t3-p2',
+      title: 'Sort Numbers from File',
+      topicId: 'u4-t3',
+      difficulty: 'intermediate',
+      problemStatement: "Assume numbers.txt contains up to 100 integers separated by spaces. Read them into an array, sort them in ascending order using qsort, and write them back to sorted.txt.",
+      constraints: ['Use qsort', 'Write to a new file'],
+      sampleInput: 'numbers.txt: 55 12 99 3',
+      sampleOutput: 'sorted.txt: 3 12 55 99',
+      hints: ['Load into int arr[100]', 'Comparator: return *(int*)a - *(int*)b;'],
+      solution: '#include <stdio.h>\n#include <stdlib.h>\n\nint comp(const void *a, const void *b) {\n    return (*(int*)a - *(int*)b);\n}\n\nint main(void) {\n    FILE *fin = fopen("numbers.txt", "r");\n    if (!fin) return 1;\n    \n    int arr[100];\n    int count = 0;\n    while (count < 100 && fscanf(fin, "%d", &arr[count]) == 1) {\n        count++;\n    }\n    fclose(fin);\n    \n    qsort(arr, count, sizeof(int), comp);\n    \n    FILE *fout = fopen("sorted.txt", "w");\n    if (!fout) return 1;\n    \n    for (int i = 0; i < count; i++) {\n        fprintf(fout, "%d ", arr[i]);\n    }\n    fclose(fout);\n    \n    return 0;\n}',
+      solutionExplanation: 'The standard Read -> Sort -> Write pipeline applied to simple integers.',
+      dryRun: [
+        { step: 1, line: 14, variables: { count: '4' }, output: '', explanation: 'Reads 55, 12, 99, 3 into array.' },
+        { step: 2, line: 19, variables: {}, output: '', explanation: 'qsort rearranges array to 3, 12, 55, 99.' },
+        { step: 3, line: 24, variables: {}, output: '', explanation: 'Loops through array, printing to output file.' },
+      ],
+      tags: ['file-io', 'sorting', 'qsort'],
+    },
+    {
+      id: 'u4-t3-p3',
+      title: 'Filter High Earners',
+      topicId: 'u4-t3',
+      difficulty: 'advanced',
+      problemStatement: "Assume employees.txt has lines of ID Salary (e.g. 101 55000). Read the file. If an employee makes > 60000, write their data into a new file high_earners.txt. You do NOT need to load all into an array, just process line by line.",
+      constraints: ['Simultaneous reading and writing'],
+      sampleInput: '101 55000\n102 85000\n103 45000',
+      sampleOutput: 'high_earners.txt: 102 85000',
+      hints: ['Open fin ("r") and fout ("w") at the same time.', 'while (fscanf(fin, "%d %f", &id, &sal) == 2)'],
+      solution: '#include <stdio.h>\n\nint main(void) {\n    FILE *fin = fopen("employees.txt", "r");\n    if (!fin) return 1;\n    \n    FILE *fout = fopen("high_earners.txt", "w");\n    if (!fout) {\n        fclose(fin);\n        return 1;\n    }\n    \n    int id;\n    float salary;\n    \n    /* Stream the data: read from one, conditionally write to the other */\n    while (fscanf(fin, "%d %f", &id, &salary) == 2) {\n        if (salary > 60000.0f) {\n            fprintf(fout, "%d %.2f\\n", id, salary);\n        }\n    }\n    \n    fclose(fin);\n    fclose(fout);\n    return 0;\n}',
+      solutionExplanation: 'This is a Streaming architecture. Because we don\'t need to sort or search backwards, we don\'t need to load the data into RAM arrays. We just keep both files open, let data pass through the CPU like a sieve, and drop the matching records into the output file. Highly memory efficient.',
+      dryRun: [
+        { step: 1, line: 17, variables: { id: '101', salary: '55000' }, output: '', explanation: 'Fails condition. Ignored.' },
+        { step: 2, line: 17, variables: { id: '102', salary: '85000' }, output: '', explanation: 'Passes condition. Written to high_earners.txt.' },
+      ],
+      tags: ['file-io', 'filtering', 'streaming'],
+    },
+  ],
+};

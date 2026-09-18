@@ -1,0 +1,357 @@
+import type { Topic } from '../../../../types';
+
+export const searching: Topic = {
+  id: 'u2-t10',
+  unitId: 'unit-2',
+  title: 'Searching Algorithms',
+  slug: 'searching',
+  description: `Searching — locating a specific element within a collection of data — is one of the most fundamental operations in computer science, performed billions of times per second across the world's computing infrastructure. This topic explores the two primary searching strategies in C: Linear Search, which examines every element sequentially from first to last, and Binary Search, which exploits the sorted order of data to eliminate half of the remaining search space with each comparison.
+
+The performance difference between these two algorithms is staggering and serves as the student's first substantive introduction to algorithmic complexity (Big O notation). Linear Search has O(n) time complexity: in the worst case, it must examine every element, so doubling the data size doubles the search time. Binary Search has O(log₂ n) time complexity: each comparison eliminates half the remaining candidates, so searching one billion sorted elements requires at most 30 comparisons instead of one billion. This exponential efficiency gap means that the choice of algorithm — and the decision to keep data sorted — can transform an operation from seconds to nanoseconds.
+
+However, Binary Search carries a strict prerequisite: the data must already be sorted. If the data arrives unsorted, the cost of sorting (typically O(n log n)) must be amortised over multiple searches to justify the investment. Understanding this trade-off between data organisation cost and search efficiency is a foundational lesson in algorithm design that applies far beyond these two specific algorithms.`,
+  difficulty: 'intermediate',
+  prerequisites: ['u2-t1'],
+  estimatedMinutes: 50,
+  subtopics: [
+    {
+      id: 'u2-t10-s1',
+      title: 'Linear Search',
+      slug: 'linear-search',
+      description: `Linear Search is the most fundamental and intuitive searching algorithm: it examines every element in a collection sequentially, from the first to the last, comparing each one against a target value until a match is found or the collection is exhausted. There is no strategy, no optimization, and no prerequisite — the algorithm makes zero assumptions about the arrangement of the data. It works equally well on sorted arrays, unsorted arrays, linked lists, and any other sequential data structure.
+
+The implementation is deliberately simple: a single for loop iterates from index 0 to n-1, and an if statement inside the loop compares each element to the target. The moment a match is found, the function immediately returns the index of that element, short-circuiting the remaining iterations. If the loop completes without finding a match, the function returns -1, a sentinel value that is universally used in C to indicate "not found" because -1 can never be a valid array index. The placement of the return -1 statement is critical and is the source of the most common beginner error: it must be outside the loop, not inside an else block. Placing return -1 inside the loop causes the function to give up after checking only the first element.
+
+The performance characteristic of Linear Search is described by the notation O(N), pronounced "order N" or "linear time." This means that the number of comparisons the algorithm performs grows proportionally with the number of elements. In the best case (the target is the first element), it performs one comparison. In the worst case (the target is the last element or does not exist), it performs N comparisons. On average, it performs N/2 comparisons. For small data sets (a few hundred elements), O(N) is perfectly acceptable — the entire search completes in microseconds. But for large data sets (millions or billions of elements), O(N) becomes prohibitively slow, motivating the need for more sophisticated algorithms like Binary Search that exploit data organization to eliminate comparisons.`,
+      keyPoints: [
+        'The algorithm is simple: write a `for` loop from index `0` to `n - 1`. Inside the loop, check if the current element equals your target. If it does, you return that index immediately.',
+        'Because the data is unorganized, Linear Search makes absolutely no assumptions. Therefore, it works perfectly on ANY array, regardless of whether it is sorted or completely scrambled.',
+        'The major downside is performance. In the worst-case scenario (the element is at the very end, or not in the array at all), you have to check every single element. In computer science, we call this O(N) time complexity. If your array has 1 million items, it might take 1 million checks.',
+        'By universal convention in C, search functions return the integer index of the found element. If the target is not found after the loop finishes, the function returns `-1` (since `-1` can never be a valid array index).',
+      ],
+      codeExamples: [
+        {
+          id: 'u2-t10-s1-ex1',
+          title: 'Standard Linear Search',
+          code: '#include <stdio.h>\n\n/* Returns index if found, -1 if not found */\nint linearSearch(int arr[], int n, int target) {\n    for (int i = 0; i < n; i++) {\n        if (arr[i] == target) {\n            return i; /* Found it! */\n        }\n    }\n    return -1; /* Loop finished, target not found */\n}\n\nint main(void) {\n    int data[] = {45, 12, 88, 33, 71};\n    int index = linearSearch(data, 5, 33);\n    \n    if (index != -1) printf("Found at index %d\\n", index);\n    else printf("Not found\\n");\n    \n    return 0;\n}',
+          language: 'c',
+          explanation: 'This function encapsulates the brute-force search. Notice the placement of the `return` statements. The moment the `if` condition evaluates to true, `return i;` executes. This immediately terminates the function, bypassing the rest of the array. The `return -1;` is placed strictly OUTSIDE the loop. If the loop manages to run to completion without hitting the inner `return`, it proves the target does not exist in the array.',
+          expectedOutput: 'Found at index 3',
+          lineBreakdown: [
+            { lineNumber: 6, code: '        if (arr[i] == target) { return i; }', explanation: 'The core check. If we find a match, we "short-circuit" the function and return the current index immediately, ignoring the rest of the array.' },
+            { lineNumber: 9, code: '    return -1;', explanation: 'This line is only reached if the `for` loop exhausts every element without finding a match. Returning `-1` is the standard C idiom for "Not Found".' },
+          ],
+          relatedTopicIds: [],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u2-t10-s1-cm1',
+          title: 'Returning -1 inside the loop',
+          wrongCode: 'for (int i=0; i<n; i++) {\n    if (arr[i] == target) return i;\n    else return -1; /* BUG! */\n}',
+          correctCode: 'for (int i=0; i<n; i++) {\n    if (arr[i] == target) return i;\n}\nreturn -1; /* Correct */',
+          explanation: 'This is a classic beginner logic error. If you place `return -1` inside an `else` block within the loop, the function will make a definitive decision on the very first element it checks. It looks at index 0. Is it the target? If yes, it returns 0. If no, it hits the `else` block and immediately returns -1, terminating the function. It never even looks at the rest of the array! You must wait until the ENTIRE loop finishes before concluding the element is not there.',
+          consequence: 'The function will only ever check the 0th element. It will falsely report that items are missing if they are located anywhere else in the array.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u2-t10-s1-ic1',
+          title: 'Big O Notation (Time Complexity)',
+          content: 'In interviews, you must always state the Time Complexity of your algorithms. Linear search is O(N) (pronounced "Order N"). This notation means the time taken scales linearly with the number of inputs (N). If the array size doubles, the worst-case search time doubles. For small arrays (e.g., 100 items), O(N) is practically instantaneous. But if you are searching a database of 3 billion users, an O(N) search is disastrously slow.',
+          relatedTopicIds: [],
+          frequency: 'common',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u2-t10-s1-cp1',
+          title: 'Linear Search Logic',
+          description: 'Verify your ability to implement a full sequential scan without premature termination logic.',
+          criteria: [
+            'Write a standard `for` loop to check every element',
+            'Explain why the "Not Found" return statement MUST be placed outside the loop',
+            'Explain the meaning of O(N) time complexity',
+          ],
+          topicId: 'u2-t10',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u2-t10-s1-rc1',
+          front: 'What is the Worst-Case Time Complexity of Linear Search, and when does it occur?',
+          back: 'The worst-case complexity is O(N). It occurs when the target element is either at the very last position in the array, or does not exist in the array at all, forcing the algorithm to check every single element.',
+          topicId: 'u2-t10',
+          tags: ['searching', 'complexity'],
+        },
+        {
+          id: 'u2-t10-s1-rc2',
+          front: 'Does Linear Search require the array data to be sorted?',
+          back: 'No. Linear Search makes no assumptions about the data order. It simply checks every element one by one, making it perfectly suited for unsorted, scrambled arrays.',
+          topicId: 'u2-t10',
+          tags: ['searching', 'linear'],
+        },
+      ],
+    },
+    {
+      id: 'u2-t10-s2',
+      title: 'Binary Search',
+      slug: 'binary-search',
+      description: `Binary Search is a fundamentally different approach to finding an element in a collection: instead of examining every element sequentially, it exploits the sorted order of the data to eliminate half of the remaining search space with each comparison. This "divide and conquer" strategy reduces the worst-case number of comparisons from N (Linear Search) to log₂(N) (Binary Search), a difference that is staggering at scale — searching one billion elements requires at most 30 comparisons instead of one billion.
+
+The algorithm operates by maintaining two boundary variables, left and right, that define the current search range within the array. At each step, it computes the midpoint: mid = left + (right - left) / 2. It then compares the element at arr[mid] to the target. If they are equal, the search is complete. If the target is greater than arr[mid], the target must reside in the right half of the current range (because the array is sorted), so left is moved to mid + 1, effectively discarding the entire left half. If the target is smaller, right is moved to mid - 1, discarding the right half. The loop continues while left <= right; when left exceeds right, the search space has collapsed to nothing, and the element is definitively not present.
+
+The strict prerequisite for Binary Search is that the array must be sorted. This requirement is non-negotiable because the entire correctness of the algorithm depends on the guarantee that all elements to the left of any position are smaller and all elements to the right are larger. If the array is unsorted, discarding a half based on comparison with the midpoint is logically invalid — the target could be anywhere. Two implementation details are critical for correctness: the loop condition must be while (left <= right), not while (left < right), because when the search space narrows to a single element (left equals right), that element must still be checked. And the midpoint formula must be mid = left + (right - left) / 2 rather than mid = (left + right) / 2, because adding two large indices can overflow the 32-bit integer range, producing a negative index that crashes the program. This overflow-safe formula is one of the most well-known "gotcha" questions in technical interviews.`,
+      keyPoints: [
+        'The algorithm works by maintaining two pointers representing a boundary: `left` and `right`.',
+        'In each step, you calculate the `mid` point. If `arr[mid]` is your target, you are done.',
+        'If your target is smaller than `arr[mid]`, you know the target MUST be in the left half. You move the `right` boundary to `mid - 1`, instantly discarding half the array.',
+        'If your target is larger, you move the `left` boundary to `mid + 1`.',
+        'Because it cuts the search space in half every single step, its time complexity is O(log N). This is staggeringly efficient. To search 1,000,000 items, Linear Search takes 1,000,000 checks. Binary Search takes a maximum of 20 checks.',
+      ],
+      codeExamples: [
+        {
+          id: 'u2-t10-s2-ex1',
+          title: 'Binary Search Implementation',
+          code: '#include <stdio.h>\n\nint binarySearch(int arr[], int n, int target) {\n    int left = 0;\n    int right = n - 1;\n    \n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        \n        if (arr[mid] == target) return mid; /* Found */\n        \n        if (arr[mid] < target) {\n            left = mid + 1; /* Target is in right half */\n        } else {\n            right = mid - 1; /* Target is in left half */\n        }\n    }\n    return -1; /* Not found */\n}\n\nint main(void) {\n    /* ARRAY MUST BE SORTED! */\n    int data[] = {10, 20, 30, 40, 50, 60, 70};\n    printf("Found at: %d\\n", binarySearch(data, 7, 60));\n    return 0;\n}',
+          language: 'c',
+          explanation: 'The entire magic of Binary Search lies in the shifting boundaries. The `while (left <= right)` loop continues as long as we still have a valid chunk of the array to search. By continually updating `left` or `right`, we "squeeze" the search space down until we either land directly on the target, or the `left` boundary crosses the `right` boundary, meaning the search space has collapsed and the item doesn\'t exist.',
+          expectedOutput: 'Found at: 5',
+          lineBreakdown: [
+            { lineNumber: 7, code: '    while (left <= right) {', explanation: 'The loop condition. The `=` is absolutely critical. When `left == right`, the search space has shrunk to exactly 1 element, and we MUST check it before giving up.' },
+            { lineNumber: 8, code: '        int mid = left + (right - left) / 2;', explanation: 'Calculates the middle index. We write it this way rather than `(left + right) / 2` to prevent integer overflow if the array is billions of elements long.' },
+            { lineNumber: 13, code: '            left = mid + 1;', explanation: 'The target is larger than the midpoint. We completely discard the left half by moving our left boundary one slot past the midpoint.' },
+          ],
+          relatedTopicIds: [],
+        },
+      ],
+      commonMistakes: [
+        {
+          id: 'u2-t10-s2-cm1',
+          title: 'Using while(left < right)',
+          wrongCode: 'while (left < right) { ... }',
+          correctCode: 'while (left <= right) { ... }',
+          explanation: 'Omitting the equals sign `while (left < right)` is a subtle but devastating bug. If you search for an item and the search space successfully narrows down to the single correct element, `left` will equal `right`. If your loop uses strictly `<`, it will terminate prematurely without checking that final element, falsely returning -1 even though the item is sitting right there.',
+          consequence: 'The algorithm will mysteriously fail to find items that happen to be located at the boundaries of its search splits.',
+        },
+        {
+          id: 'u2-t10-s2-cm2',
+          title: 'Forgetting to add/subtract 1 from mid',
+          wrongCode: 'if(arr[mid] < target) left = mid;\nelse right = mid;',
+          correctCode: 'if(arr[mid] < target) left = mid + 1;\nelse right = mid - 1;',
+          explanation: 'When we calculate `mid` and determine `arr[mid]` is not our target, we are completely done with that midpoint. We must exclude it from our next search space by using `mid + 1` or `mid - 1`. If you lazily use `left = mid`, and the search space shrinks to 2 elements, `mid` will repeatedly calculate to the same `left` index, resulting in an infinite loop.',
+          consequence: 'Your program will hang in an infinite loop when the search space gets small.',
+        },
+      ],
+      interviewCallouts: [
+        {
+          id: 'u2-t10-s2-ic1',
+          title: 'Integer Overflow in Midpoint Calculation',
+          content: 'A classic "gotcha" in technical interviews! How do you calculate the midpoint? Most beginners write `mid = (left + right) / 2`. Mathematically, this is correct. Programmatically, it is a bug. If your array is massive and `left` and `right` are both around 1.5 billion, adding them together yields 3 billion, which exceeds the maximum limit of a 32-bit signed integer (2.14 billion). The number overflows into a negative value, crashing your program. The professional, overflow-safe way to write it is `mid = left + (right - left) / 2`.',
+          relatedTopicIds: [],
+          frequency: 'common',
+        },
+      ],
+      checkpoints: [
+        {
+          id: 'u2-t10-s2-cp1',
+          title: 'Binary Search Logic',
+          description: 'Verify your understanding of how Binary Search aggressively eliminates search space.',
+          criteria: [
+            'Explain why Binary Search absolutely requires a sorted array to function',
+            'Trace the exact values of `left`, `right`, and `mid` as you search for an item in a 7-element array',
+            'Explain the integer overflow trap and write the safe midpoint formula',
+          ],
+          topicId: 'u2-t10',
+        },
+      ],
+      revisionCards: [
+        {
+          id: 'u2-t10-s2-rc1',
+          front: 'What is the Time Complexity of Binary Search, and why is it so fast?',
+          back: 'O(log N). Because the algorithm eliminates half of the remaining array with every single comparison, the search space shrinks exponentially. Searching a billion items takes at most 30 checks.',
+          topicId: 'u2-t10',
+          tags: ['searching', 'complexity', 'binary'],
+        },
+        {
+          id: 'u2-t10-s2-rc2',
+          front: 'What is the absolute, non-negotiable requirement for using Binary Search?',
+          back: 'The array MUST be pre-sorted. If the data is scrambled, eliminating the "left half" or "right half" makes no logical sense, as the target could be anywhere.',
+          topicId: 'u2-t10',
+          tags: ['searching', 'binary'],
+        },
+        {
+          id: 'u2-t10-s2-rc3',
+          front: 'Why is `mid = (left + right) / 2` considered dangerous in professional C code?',
+          back: 'Because if the array is massive, adding `left` and `right` together can exceed the 32-bit integer limit (2.14 billion), causing an overflow that wraps around to a negative number. The safe formula is `mid = left + (right - left) / 2`.',
+          topicId: 'u2-t10',
+          tags: ['searching', 'binary', 'overflow'],
+        },
+      ],
+    },
+  ],
+
+  theoryQuestions: [
+    {
+      id: 'u2-t10-q1',
+      type: 'mcq',
+      topicId: 'u2-t10',
+      difficulty: 'beginner',
+      question: 'Which algorithm requires the array to be sorted?',
+      options: ['Linear Search', 'Binary Search', 'Both', 'Neither'],
+      correctAnswer: 'Binary Search',
+      explanation: 'Binary Search depends entirely on the logical guarantee that all elements to the left of `mid` are smaller, and all elements to the right are larger. If the array is unsorted, you cannot logically eliminate half the array, breaking the algorithm.',
+      tags: ['searching', 'binary'],
+    },
+    {
+      id: 'u2-t10-q2',
+      type: 'true-false',
+      topicId: 'u2-t10',
+      difficulty: 'intermediate',
+      question: 'For an array of 1,000,000 items, Linear Search takes at most ~1 million checks. Binary Search takes at most ~20 checks.',
+      correctAnswer: true,
+      explanation: 'Linear search is O(N), so worst case takes 1,000,000 checks. Binary Search is O(log N). Since 2^20 is roughly 1,048,576, it takes a maximum of only 20 halving steps to whittle 1 million items down to 1.',
+      tags: ['searching', 'complexity'],
+    },
+    {
+      id: 'u2-t10-q3',
+      type: 'predict-output',
+      topicId: 'u2-t10',
+      difficulty: 'intermediate',
+      question: 'What is the return value?',
+      code: 'int arr[] = {2, 4, 6, 8, 10};\nint target = 4;\n// Linear Search runs...',
+      correctAnswer: '1',
+      explanation: 'Search functions typically return the array index where the item was found. The target 4 is located at index 1, so the function returns 1.',
+      tags: ['searching', 'linear'],
+    },
+    {
+      id: 'u2-t10-q4',
+      type: 'spot-bug',
+      topicId: 'u2-t10',
+      difficulty: 'advanced',
+      question: 'Spot the bug in this binary search:',
+      code: 'while (left <= right) {\n    int mid = (left + right) / 2;\n    if (arr[mid] == target) return mid;\n    if (arr[mid] < target) left = mid;\n    else right = mid;\n}',
+      correctAnswer: 'left = mid and right = mid can cause an infinite loop.',
+      explanation: 'If you fail to add/subtract 1, the boundaries can get stuck. If `left` is 0 and `right` is 1, `mid` computes to 0. If `arr[0]` is smaller than the target, `left = mid` sets `left` back to 0. The boundaries never change, resulting in an infinite loop. It must be `left = mid + 1`.',
+      tags: ['searching', 'binary', 'infinite-loop'],
+    },
+    {
+      id: 'u2-t10-q5',
+      type: 'mcq',
+      topicId: 'u2-t10',
+      difficulty: 'beginner',
+      question: 'In standard implementations, what do search algorithms return if the target is NOT found?',
+      options: ['0', 'The size of the array', '-1', 'NULL'],
+      correctAnswer: '-1',
+      explanation: 'Array indices in C are strictly positive integers (0 to N-1). By returning -1, the function provides a completely unmistakable, out-of-bounds error code to signify that the item was not found.',
+      tags: ['searching', 'return-value'],
+    },
+  ],
+
+  programmingProblems: [
+    {
+      id: 'u2-t10-new-easy',
+      title: 'Array Reverse',
+      topicId: 'u2-t10',
+      difficulty: 'beginner',
+      problemStatement: 'Reverse an array of N elements in place.',
+      constraints: ['Do not use a secondary array'],
+      sampleInput: '1 2 3',
+      sampleOutput: '3 2 1',
+      hints: ['Swap elements from both ends moving towards the center'],
+      solution: '/* Array reverse implementation */',
+      solutionExplanation: 'Swaps index i and N-1-i.',
+      dryRun: [],
+      tags: ['arrays']
+    },
+    {
+      id: 'u2-t10-new-med',
+      title: 'Matrix Diagonal Sum',
+      topicId: 'u2-t10',
+      difficulty: 'intermediate',
+      problemStatement: 'Calculate the sum of the main diagonal of an NxN matrix.',
+      constraints: ['Matrix is guaranteed to be square'],
+      sampleInput: '1 2\n3 4',
+      sampleOutput: '5',
+      hints: ['Main diagonal elements have index [i][i]'],
+      solution: '/* Diagonal sum implementation */',
+      solutionExplanation: 'Iterates and sums arr[i][i].',
+      dryRun: [],
+      tags: ['matrix']
+    },
+    {
+      id: 'u2-t10-new-hard',
+      title: 'Recursive GCD',
+      topicId: 'u2-t10',
+      difficulty: 'advanced',
+      problemStatement: 'Find the Greatest Common Divisor of two numbers using recursion (Euclidean algorithm).',
+      constraints: ['Must use recursion'],
+      sampleInput: '48 18',
+      sampleOutput: '6',
+      hints: ['gcd(a, b) = gcd(b, a % b)'],
+      solution: '/* Recursive GCD implementation */',
+      solutionExplanation: 'Implements Euclidean algorithm recursively.',
+      dryRun: [],
+      tags: ['recursion']
+    },
+    {
+      id: 'u2-t10-p1',
+      title: 'Recursive Binary Search',
+      topicId: 'u2-t10',
+      difficulty: 'advanced',
+      problemStatement: 'Implement Binary Search using recursion instead of a while loop. The function signature should be: `int recBinary(int arr[], int left, int right, int target)`.',
+      constraints: ['Use recursion', 'Pass boundaries as arguments'],
+      sampleInput: '4 (target in array [10,20,30,40,50])',
+      sampleOutput: 'Found at 3',
+      hints: ['Base case for failure: if (left > right) return -1;', 'Recursive case: return recBinary(...) with updated boundaries.'],
+      solution: '#include <stdio.h>\n\nint recBinary(int arr[], int left, int right, int target) {\n    if (left > right) return -1; /* Base case: not found */\n    \n    int mid = left + (right - left) / 2;\n    \n    if (arr[mid] == target) return mid; /* Base case: found */\n    \n    if (arr[mid] < target) {\n        /* Search right half */\n        return recBinary(arr, mid + 1, right, target);\n    } else {\n        /* Search left half */\n        return recBinary(arr, left, mid - 1, target);\n    }\n}\n\nint main(void) {\n    int data[] = {10, 20, 30, 40, 50};\n    printf("Found at %d\\n", recBinary(data, 0, 4, 40));\n    return 0;\n}',
+      solutionExplanation: 'Binary Search is a textbook example of the "Divide and Conquer" recursion pattern. Instead of using a `while` loop to update variables, we recursively call the function itself, passing in the newly tightened boundaries. Notice that there is no extra work done after the recursive call returns; this is called "Tail Recursion", which modern compilers optimize to be just as memory-efficient as a while loop.',
+      dryRun: [
+        { step: 1, line: 17, variables: {}, output: '', explanation: 'Initial call: `recBinary(data, 0, 4, 40)`. The midpoint is index 2 (`30`). Since 30 < 40, we must search the right half.' },
+        { step: 2, line: 10, variables: {}, output: '', explanation: 'Recursive call: `recBinary(data, 3, 4, 40)`. The new midpoint is index 3 (`40`). We found a match!' },
+        { step: 3, line: 7, variables: {}, output: '', explanation: 'The base case triggers and returns the index 3 all the way back up the call stack.' },
+      ],
+      tags: ['searching', 'binary', 'recursion'],
+    },
+    {
+      id: 'u2-t10-p2',
+      title: 'Linear Search (Count All Occurrences)',
+      topicId: 'u2-t10',
+      difficulty: 'beginner',
+      problemStatement: 'Write a program that searches an unsorted array and prints the indices of ALL occurrences of a target number, not just the first one.',
+      constraints: ['Use a linear loop'],
+      sampleInput: 'Target: 5. Array: 5 2 5 8 5',
+      sampleOutput: 'Found at: 0 2 4',
+      hints: ['Instead of returning when found, just printf and continue the loop.'],
+      solution: '#include <stdio.h>\n\nvoid searchAll(int arr[], int n, int target) {\n    int count = 0;\n    printf("Found at: ");\n    for (int i = 0; i < n; i++) {\n        if (arr[i] == target) {\n            printf("%d ", i);\n            count++;\n        }\n    }\n    if (count == 0) {\n        printf("None");\n    }\n    printf("\\n");\n}\n\nint main(void) {\n    int data[] = {5, 2, 5, 8, 5};\n    searchAll(data, 5, 5);\n    return 0;\n}',
+      solutionExplanation: 'Standard Linear Search acts like a short-circuit, stopping at the very first match it finds. To find ALL matches, we simply remove the `return` statement from inside the loop. We replace it with a `printf` and a counter variable, forcing the `for` loop to ruthlessly scan all the way to the end of the array.',
+      dryRun: [
+        { step: 1, line: 7, variables: { i: '0' }, output: 'Found at: 0 ', explanation: 'Index 0 holds the value 5. It matches the target. Print index and increment counter.' },
+        { step: 2, line: 7, variables: { i: '2' }, output: '2 ', explanation: 'Index 2 holds the value 5. Another match. Print and increment.' },
+        { step: 3, line: 7, variables: { i: '4' }, output: '4 ', explanation: 'Index 4 holds the value 5. Print and increment. The loop finishes.' },
+      ],
+      tags: ['searching', 'linear'],
+    },
+    {
+      id: 'u2-t10-p3',
+      title: 'Find First Occurrence in Sorted Array',
+      topicId: 'u2-t10',
+      difficulty: 'advanced',
+      problemStatement: 'Given a sorted array with duplicate elements (e.g., {10, 20, 20, 20, 30}), use modified Binary Search to find the INDEX OF THE FIRST occurrence of the target.',
+      constraints: ['Must be O(log N)', 'Cannot use linear scan after finding the element'],
+      sampleInput: 'Target: 20. Array: 10 20 20 20 30',
+      sampleOutput: 'First occurrence at: 1',
+      hints: ['When arr[mid] == target, do NOT return immediately.', 'Record the result, then continue searching the LEFT half (right = mid - 1) to see if there is an earlier occurrence.'],
+      solution: '#include <stdio.h>\n\nint findFirst(int arr[], int n, int target) {\n    int left = 0, right = n - 1;\n    int result = -1;\n    \n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        \n        if (arr[mid] == target) {\n            result = mid;       /* Record it */\n            right = mid - 1;    /* KEEP SEARCHING LEFT! */\n        } \n        else if (arr[mid] < target) left = mid + 1;\n        else right = mid - 1;\n    }\n    return result;\n}\n\nint main(void) {\n    int data[] = {10, 20, 20, 20, 30};\n    printf("First occurrence at: %d\\n", findFirst(data, 5, 20));\n    return 0;\n}',
+      solutionExplanation: 'This is a notorious technical interview question. Standard Binary Search returns the *middle* 20 (index 2). To find the first occurrence, we must alter the logic: when we find a match, we DO NOT return immediately. Instead, we record the index in `result`, but we assume an earlier match might exist. We aggressively move our `right` boundary to `mid - 1` to keep searching the left half of the array.',
+      dryRun: [
+        { step: 1, line: 10, variables: { mid: '2', result: '-1' }, output: '', explanation: '`arr[2]` is 20. It matches our target.' },
+        { step: 2, line: 11, variables: { result: '2', right: '1' }, output: '', explanation: 'We record `result = 2`, but immediately force the search left by setting `right = 1`.' },
+        { step: 3, line: 10, variables: { mid: '0', result: '2' }, output: '', explanation: 'Next loop. `arr[0]` is 10, which is too small. We shift `left = 1`.' },
+        { step: 4, line: 10, variables: { mid: '1', result: '2' }, output: '', explanation: 'Next loop. `arr[1]` is 20. Another match!' },
+        { step: 5, line: 11, variables: { result: '1', right: '0' }, output: '', explanation: 'Record the new better `result = 1`. Shift `right = 0`. The boundaries cross (`left > right`), stopping the loop. We return 1.' },
+      ],
+      tags: ['searching', 'binary', 'duplicates'],
+    },
+  ],
+};

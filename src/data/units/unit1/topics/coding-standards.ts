@@ -1,0 +1,286 @@
+import type { Topic } from '../../../../types';
+
+export const codingStandards: Topic = {
+  id: 'u1-t12',
+  unitId: 'unit-1',
+  title: 'Coding Standards and Guidelines',
+  slug: 'coding-standards',
+  description: `Writing code that compiles and produces correct output is only half the engineering discipline — writing code that is readable, maintainable, and defensively constructed is the other half. In professional software development, code is read far more often than it is written: during code reviews, debugging sessions, feature extensions, and onboarding of new team members. The readability of your code therefore has a direct, measurable impact on development velocity, bug density, and long-term maintenance cost.
+
+This topic covers the three pillars of code quality that distinguish professional C code from student-quality code: naming conventions (snake_case for variables and functions, UPPER_SNAKE_CASE for constants), formatting discipline (consistent indentation, brace placement, and whitespace usage), and purposeful commenting (explaining the rationale behind non-obvious design decisions rather than restating what the code mechanically does). These practices are not arbitrary aesthetic preferences — they are engineering disciplines refined over decades of industry experience and codified in standards like the Linux kernel coding style, MISRA C, and CERT C.
+
+Beyond human-readable style, this topic covers the use of GCC compiler warning flags (-Wall, -Wextra, -Werror) as automated static analysis tools that catch entire categories of bugs at compile time. Enabling comprehensive warnings transforms the compiler from a passive translator into an active mentor that detects unused variables, format-string mismatches, implicit function declarations, signed/unsigned comparison hazards, and dozens of other issues before the program ever runs. Making zero-warning compilation a non-negotiable personal standard is one of the highest-leverage habits a C programmer can develop.`,
+  difficulty: 'beginner',
+  prerequisites: ['u1-t3'],
+  estimatedMinutes: 25,
+  subtopics: [
+    {
+      id: 'u1-t12-s1', title: 'Naming, Indentation, and Comments', slug: 'naming-indentation-comments',
+      description: `The three foundational disciplines of readable code are descriptive naming, consistent formatting, and purposeful commenting. Of these, naming is the most impactful: a well-chosen variable name like student_count or total_revenue communicates intent so clearly that no comment is needed, whereas a cryptic name like sc or tr forces every future reader to reverse-engineer its meaning from context. The C convention for variable and function names is snake_case (all lowercase, words separated by underscores), matching the style used by the C standard library itself (strlen, fopen, malloc). Constants and macro definitions use UPPER_SNAKE_CASE to visually distinguish them from mutable variables.
+
+Indentation creates visual structure that mirrors logical structure, making the nesting depth and control flow of a program instantly apparent. The two dominant standards are 4-space indentation (used by the Linux kernel and most academic courses) and tab-based indentation (common in older codebases). The specific choice matters far less than absolute consistency within a project — mixing tabs and spaces creates misleading visual alignment that can obscure the actual block structure, particularly around nested if-else chains and deeply nested loops.
+
+Comments serve a fundamentally different purpose than code: they explain why a particular approach was taken, not what the code mechanically does. A comment like /* increment i */ above i++ adds no information and creates maintenance burden (if the code changes, the comment must be updated too). A comment like /* Skip the header row, which is always exactly 128 bytes */ explains a non-obvious design decision that would otherwise require reading documentation or commit history to understand. Block comments (/* ... */) are used for function-level documentation and multi-line explanations; single-line comments (// ...) are used for brief inline annotations. The goal is to write code so clear that comments are needed only for the genuinely non-obvious.`,
+      keyPoints: [
+        'For variables and functions, use snake_case (all lowercase, words separated by underscores): total_marks, calculate_sum, student_count. This is the dominant convention in C and follows the style used by the C standard library itself (printf, strlen, fopen). Choose names that describe what the variable holds or what the function does — the name should make comments unnecessary.',
+        'For constants and preprocessor macros, use UPPER_CASE (also called SCREAMING_SNAKE_CASE): MAX_SIZE, PI, BUFFER_LENGTH. The uppercase immediately signals to the reader that this is a fixed value that should never be modified, making the code\'s intent clear at a glance.',
+        'Indentation should be consistent throughout your codebase: use either 4 spaces or 1 tab per level, but never mix them. Inconsistent indentation destroys the visual structure that makes control flow readable. In this course, we standardize on 4 spaces. Configure your text editor to insert spaces when you press Tab to avoid accidental mixing.',
+        'Two brace styles are common in C: K&R style places the opening brace on the same line as the control statement (if (x) {), while Allman style places it on its own line (if (x) \n {). Both are perfectly acceptable, but you must be consistent within a project. The Linux kernel uses K&R; many Windows codebases use Allman. For this course, either is fine as long as you never switch between them in the same file.',
+        'The best comments explain why the code exists, not what it does. A comment like /* increment i */ next to i++ is pure noise — any programmer can see that i++ increments i. But a comment like /* skip header row in CSV input */ next to i++ tells the reader something they could never deduce from the code alone. Reserve your comments for explaining business rules, non-obvious algorithms, workarounds for known bugs, and references to specifications.',
+        'Resist the urge to comment every line. Over-commenting is as harmful as under-commenting because it buries the truly important comments in a sea of noise. If your code needs extensive comments to be understandable, that is usually a sign that the code itself needs to be clearer — through better naming, smaller functions, or simpler logic — rather than more comments.',
+      ],
+      codeExamples: [
+        {
+          id: 'u1-t12-s1-ex1', title: 'Good vs Bad Naming', language: 'c',
+          code: '#include <stdio.h>\n\n/* BAD naming */\nint f(int a, int b) {\n    int c = a + b;\n    return c;\n}\n\n/* GOOD naming */\nint calculate_sum(int first_number, int second_number) {\n    int total = first_number + second_number;\n    return total;\n}\n\nint main(void) {\n    printf("Sum = %d\\n", calculate_sum(10, 20));\n    return 0;\n}',
+          explanation: 'This side-by-side comparison reveals how much difference naming makes. The function f with parameters a and b is a complete mystery: what does it compute? What do the parameters represent? You would need to read the implementation carefully and infer the intent. But calculate_sum with first_number and second_number is immediately clear — you understand its purpose without reading a single line of the function body. Good naming is the most effective form of documentation because it is embedded directly in the code and can never go out of sync with the implementation (unlike comments, which can become stale).',
+          expectedOutput: 'Sum = 30',
+          lineBreakdown: [
+            { lineNumber: 4, code: 'int f(int a, int b)', explanation: 'BAD: meaningless names. What does f do? What are a, b?' },
+            { lineNumber: 10, code: 'int calculate_sum(int first_number, int second_number)', explanation: 'GOOD: name tells you exactly what the function does and what the parameters represent.' },
+          ],
+          relatedTopicIds: ['u1-t4'],
+        },
+        {
+          id: 'u1-t12-s1-ex2', title: 'Magic Numbers vs Named Constants', language: 'c',
+          code: '#include <stdio.h>\n\n/* BAD: magic numbers */\nfloat bad_area(float r) {\n    return 3.14159 * r * r;  /* what is 3.14159? */\n}\n\n/* GOOD: named constants */\n#define PI 3.14159f\n#define MAX_RADIUS 100.0f\n\nfloat good_area(float radius) {\n    if (radius > MAX_RADIUS) return -1.0f;\n    return PI * radius * radius;\n}\n\nint main(void) {\n    printf("Area = %.2f\\n", good_area(5.0f));\n    return 0;\n}',
+          explanation: 'A "magic number" is a numeric literal that appears in code without explanation — the number 3.14159 on its own does not tell the reader why it was chosen, and the threshold 100.0 is equally opaque. Named constants solve this by giving meaning to values: PI immediately communicates that 3.14159 represents the mathematical constant pi, and MAX_RADIUS makes the validation check self-explanatory. Named constants also have a practical advantage: if you need to change a threshold, you change it in one place (#define or const) instead of hunting through your entire codebase for every occurrence of the magic number.',
+          expectedOutput: 'Area = 78.54',
+          lineBreakdown: [
+            { lineNumber: 5, code: '    3.14159 * r * r', explanation: 'BAD: Why 3.14159? A reader must guess. What if it appears in 10 places and you need to change precision?' },
+            { lineNumber: 14, code: '    PI * radius * radius', explanation: 'GOOD: clearly PI. Change it in one place (#define) and all uses update.' },
+          ],
+          relatedTopicIds: ['u1-t3'],
+        },
+        {
+          id: 'u1-t12-s1-ex3', title: 'Good vs Bad Comments', language: 'c',
+          code: '#include <stdio.h>\n\nint main(void) {\n    int marks = 85;\n\n    /* BAD comments — state the obvious */\n    /* int marks = 85; // set marks to 85 */\n    /* marks++; // increment marks */\n\n    /* GOOD comments — explain WHY */\n    /* Add 5 bonus marks for lab attendance */\n    marks += 5;\n\n    /* Use >= 90 threshold per university grading policy 2024 */\n    if (marks >= 90) {\n        printf("Grade: S\\n");\n    } else {\n        printf("Grade: A\\n");\n    }\n    return 0;\n}',
+          explanation: 'This example shows the spectrum from harmful comments (restating the obvious) to valuable comments (explaining intent and context). The comment "set marks to 85" on marks = 85 is noise — it tells you nothing you cannot read from the code itself. But "Add 5 bonus marks for lab attendance" on marks += 5 is invaluable: without it, a reader would wonder "why are we adding 5? Is this a bug? A hack?" The best comments answer questions that the code raises but cannot answer on its own: why this value? Why this approach? What specification or policy does this implement?',
+          expectedOutput: 'Grade: S',
+          lineBreakdown: [
+            { lineNumber: 7, code: '    /* set marks to 85 */', explanation: 'BAD: anyone can see marks = 85 sets marks. This comment is noise.' },
+            { lineNumber: 11, code: '    /* Add 5 bonus marks for lab attendance */', explanation: 'GOOD: explains WHY we add 5. Without this, a reader wonders "why 5?"' },
+          ],
+          relatedTopicIds: [],
+        },
+      ],
+      commonMistakes: [
+        { id: 'u1-t12-s1-cm1', title: 'Inconsistent naming styles',
+          wrongCode: 'int totalMarks = 0;\nint item_count = 0;\nint N = 10;',
+          correctCode: 'int total_marks = 0;\nint item_count = 0;\nint n = 10;',
+          explanation: 'Mixing naming conventions within a single file creates cognitive friction: the reader must constantly adjust their expectations about how names are structured, wasting mental energy that should be spent understanding the logic. When you see totalMarks (camelCase), item_count (snake_case), and N (single uppercase) in the same file, you cannot tell whether these conventions signal different kinds of variables or whether the author was simply inconsistent. In C, the standard convention is snake_case for variables and functions, UPPER_CASE for macros and constants. Following this universally understood convention means your code is immediately readable by any C programmer.',
+          consequence: 'Other developers (including your future self) waste time trying to figure out whether naming differences are meaningful or arbitrary. Code reviews become contentious over style instead of logic. Searching for variable names becomes unreliable because you cannot predict the formatting pattern.' },
+        { id: 'u1-t12-s1-cm2', title: 'Over-commenting obvious code',
+          wrongCode: 'i = 0;  /* set i to 0 */\ni++;    /* increment i by 1 */\nreturn 0; /* return zero */',
+          correctCode: 'i = 0;\ni++;\nreturn 0;\n/* Comments reserved for non-obvious logic */',
+          explanation: 'There is a paradox in commenting: too many comments make code harder to read, not easier. When every line has a comment restating what it does, the important comments (the ones that explain non-obvious decisions, workarounds, or business rules) get lost in the noise. A developer reading heavily over-commented code unconsciously starts ignoring comments altogether, which means they miss the one comment that actually matters. The discipline is to comment only when the code cannot speak for itself: why this value was chosen, what edge case this handles, what specification this implements, or what known issue this works around.',
+          consequence: 'The signal-to-noise ratio of comments drops so low that genuinely important comments are overlooked. Developers begin ignoring all comments, including critical ones. The codebase becomes harder to maintain rather than easier.' },
+      ],
+      interviewCallouts: [
+        { id: 'u1-t12-s1-ic1', title: 'Why do coding standards matter?',
+          content: 'This is a question that reveals whether you think like a professional software engineer or a solo student coder. In professional teams, code is shared: you write code that five, ten, or fifty other people will read, debug, and modify. Consistent naming means anyone can understand any variable instantly. Consistent formatting means the visual structure of the code reflects its logical structure. Meaningful comments capture institutional knowledge that would be lost if the original author left. Companies like Google (which has a public C++ style guide), the Linux kernel project (which has a famous coding standard), and MISRA (which publishes safety-critical C guidelines for automotive and medical software) all enforce strict coding standards because the cost of unclear code — in bugs, development time, and security vulnerabilities — far exceeds the cost of following rules. In interviews, demonstrating awareness of coding standards signals maturity and professionalism.',
+          relatedTopicIds: [], frequency: 'common' },
+      ],
+      checkpoints: [
+        { id: 'u1-t12-s1-cp1', title: 'Clean Code Practices', description: 'Verify coding standards understanding.',
+          criteria: ['Use snake_case for variables and UPPER_CASE for constants consistently', 'Replace all magic numbers with named constants', 'Write comments that explain why, not what', 'Use consistent 4-space indentation'], topicId: 'u1-t12' },
+      ],
+      revisionCards: [
+        { id: 'u1-t12-s1-rc1', front: 'What naming convention should you use for C variables?', back: 'snake_case: all lowercase, words separated by underscores. Examples: total_marks, student_count, is_valid. Use UPPER_CASE for constants: MAX_SIZE, PI.', topicId: 'u1-t12', tags: ['naming', 'convention'] },
+        { id: 'u1-t12-s1-rc2', front: 'What is a magic number and why is it bad?', back: 'A magic number is an unexplained numeric literal in code (e.g., if (score > 90)). It is bad because readers cannot understand why 90 was chosen. Replace with a named constant: #define PASS_THRESHOLD 90.', topicId: 'u1-t12', tags: ['magic-numbers', 'constants'] },
+        { id: 'u1-t12-s1-rc3', front: 'What makes a good code comment?', back: 'Good comments explain WHY (intent, business rules, workarounds), not WHAT (restating the code). Bad: /* add 1 to i */ i++; Good: /* retry connection after timeout */ i++;', topicId: 'u1-t12', tags: ['comments'] },
+      ],
+    },
+    {
+      id: 'u1-t12-s2', title: 'GCC Warning Flags as a Discipline Tool', slug: 'gcc-warnings',
+      description: `The GCC compiler is not merely a translator from C source code to machine instructions — when properly configured, it functions as an automated static analysis tool that catches entire categories of bugs at compile time, long before the program ever runs. By default, GCC compiles with minimal warnings enabled, accepting code that is technically legal but semantically suspicious. Enabling the -Wall flag activates the most commonly useful warning categories: unused variables (which often indicate logic errors or leftover debugging code), missing return statements in non-void functions, implicit function declarations (calling a function without a visible prototype), format specifier mismatches in printf/scanf (passing an int where %f expects a double), and many others.
+
+The -Wextra flag extends the warning set beyond -Wall to include additional checks that are useful but occasionally produce false positives: warnings about unused function parameters (common in callback functions where the API mandates a specific signature but not all parameters are needed), comparisons between signed and unsigned integers (which can produce counter-intuitive results due to implicit conversion rules), and other subtle patterns. Combining -Wall -Wextra together catches the vast majority of compile-time-detectable bugs and is the recommended baseline for all C development.
+
+The -Werror flag represents the strictest discipline: it promotes every warning to a hard compilation error, meaning the program cannot be built until every warning is resolved. Professional codebases and CI/CD pipelines universally use -Werror to enforce zero-warning policies, because a warning that is tolerated today becomes a bug that is discovered in production tomorrow. The -Wpedantic flag additionally enforces strict ISO C conformance, flagging any use of compiler-specific extensions (such as GCC's statement expressions or variable-length arrays in contexts where the standard forbids them). Adopting the habit of compiling with -Wall -Wextra and treating every warning as a bug to be fixed is one of the highest-leverage practices a C programmer can develop.`,
+      keyPoints: [
+        '-Wall does not actually enable "all" warnings (despite the name) — it enables the most commonly useful ones: warnings about unused variables, missing return statements, implicit function declarations, format specifier mismatches, uninitialized variables in some cases, and suspicious comparison patterns. These warnings catch a huge percentage of beginner bugs at compile time, saving you from mysterious runtime behavior.',
+        '-Wextra goes beyond -Wall to enable additional warnings that are useful but occasionally produce false positives: unused function parameters (common in callback functions where you intentionally ignore an argument), sign comparison issues (comparing signed and unsigned values, which can behave unexpectedly), and other subtle patterns. Using both -Wall and -Wextra together catches the vast majority of compile-time-detectable bugs.',
+        '-Werror is the nuclear option: it treats every warning as a compilation error, meaning your code simply will not build until every warning is resolved. This is used in professional codebases to enforce zero-warning discipline. It is excellent for training yourself to write clean code, but can be frustrating during rapid prototyping when you want to test an idea quickly. Use -Wall -Wextra during development and add -Werror when you want strictness.',
+        '-Wpedantic enforces strict ISO C compliance, warning about any code that uses GCC-specific extensions. This is useful when you need your code to compile on non-GCC compilers (like Microsoft\'s MSVC or Clang in strict mode), but is usually overkill for this course.',
+        'Your standard compilation command for every program in this course should be: gcc -std=c11 -Wall -Wextra -g -o prog prog.c. This combination gives you C11 standard compliance, comprehensive warnings, and debug symbols for GDB. Memorize this command and use it every single time.',
+        'Treating warnings as optional is one of the most damaging habits a beginning programmer can develop. Warnings almost always indicate real bugs or code that will break under different circumstances. A program that compiles with warnings is a program with known defects that the programmer chose to ignore. Professional developers fix every warning before committing code.',
+      ],
+      codeExamples: [
+        {
+          id: 'u1-t12-s2-ex1', title: 'Warnings Reveal Hidden Bugs', language: 'c',
+          code: '#include <stdio.h>\n\nint max(int a, int b) {\n    if (a > b)\n        return a;\n    /* WARNING: control reaches end of non-void function */\n    /* FIX: add else return b; */\n}\n\nint main(void) {\n    int x = 10;\n    int y = 20;  /* WARNING: unused variable */\n    printf("Max: %d\\n", max(5, 10));\n    return 0;\n}',
+          explanation: 'This program contains two bugs that compile silently without -Wall but are immediately flagged with it. First, the max function has no return statement when a <= b, meaning it returns whatever garbage happens to be in the return register — undefined behavior that may produce correct results on your machine but fail spectacularly on another. Second, the variable y is declared and assigned but never used, suggesting that the programmer forgot to incorporate it into the logic. Both of these are genuine bugs, not false alarms. The compiler is doing you a favor by pointing them out, and ignoring them is choosing to leave known defects in your code.',
+          expectedOutput: 'Max: 10',
+          lineBreakdown: [
+            { lineNumber: 6, code: '    /* control reaches end */', explanation: '-Wall catches this: if a <= b, the function returns garbage (no return statement).' },
+            { lineNumber: 12, code: '    int y = 20;', explanation: '-Wall catches this: y is declared but never used. Either use it or remove it.' },
+          ],
+          relatedTopicIds: ['u1-t3'],
+        },
+        {
+          id: 'u1-t12-s2-ex2', title: 'Clean Code — Zero Warnings', language: 'c',
+          code: '#include <stdio.h>\n\nint max(int a, int b) {\n    if (a > b) {\n        return a;\n    }\n    return b;  /* all paths return a value */\n}\n\nint main(void) {\n    printf("Max: %d\\n", max(5, 10));\n    return 0;\n}',
+          explanation: 'This is the "fixed" version that compiles with zero warnings. Every code path in max() now returns a value: if a > b, return a; otherwise, return b. The unused variable y has been removed. The program is now not only functionally correct but also provably free of the compile-time-detectable issues that -Wall checks for. Getting to zero warnings should be your standard for every program you submit, just as you would not turn in an essay with obvious spelling errors.',
+          expectedOutput: 'Max: 10',
+          lineBreakdown: [
+            { lineNumber: 7, code: '    return b;', explanation: 'Ensures all code paths return a value. No more "control reaches end" warning.' },
+          ],
+          relatedTopicIds: [],
+        },
+        {
+          id: 'u1-t12-s2-ex3', title: 'Format String Mismatch Warning', language: 'c',
+          code: '#include <stdio.h>\n\nint main(void) {\n    /* -Wall catches: format %d expects int, but got double */\n    /* printf("%d\\n", 3.14); */\n\n    /* Correct: use %f for double */\n    printf("%f\\n", 3.14);\n    printf("Compile with: gcc -std=c11 -Wall -Wextra -g\\n");\n    return 0;\n}',
+          explanation: 'This demonstrates one of the most valuable warnings enabled by -Wall: the -Wformat check. When you use %d (which expects a 4-byte integer) but pass a double (which is 8 bytes in a completely different format), printf reads the wrong number of bytes and interprets them using the wrong encoding. The result is garbage that has no relationship to the actual value. This is formally undefined behavior, meaning the C standard makes no guarantees about what will happen. The compiler catches this mismatch at compile time and tells you exactly what is wrong, but only if you enable warnings with -Wall.',
+          expectedOutput: '3.140000\nCompile with: gcc -std=c11 -Wall -Wextra -g',
+          lineBreakdown: [
+            { lineNumber: 5, code: '    /* printf("%d", 3.14); */', explanation: '-Wformat (included in -Wall) warns: %d expects int but argument is double.' },
+          ],
+          relatedTopicIds: ['u1-t9'],
+        },
+      ],
+      commonMistakes: [
+        { id: 'u1-t12-s2-cm1', title: 'Ignoring compiler warnings',
+          wrongCode: '/* Compiled with: gcc prog.c -o prog */\n/* 3 warnings generated — student ignores them */',
+          correctCode: '/* Compiled with: gcc -std=c11 -Wall -Wextra -g prog.c -o prog */\n/* 0 warnings — all issues fixed */',
+          explanation: 'This is the most self-destructive habit in programming: compiling with zero warning flags and ignoring the implicit warnings the compiler silently suppresses. When a student says "it compiles and runs," they mean "GCC was able to translate my code to machine code without any syntactic errors." But that says nothing about the correctness of the logic. With -Wall -Wextra enabled, the same student might discover five warnings revealing unused variables, missing return values, format mismatches, and implicit conversions. Each of these is a ticking time bomb that may explode during an exam, a demo, or in production. Fix every warning, every time.',
+          consequence: 'Bugs that the compiler could have caught at compile time become runtime crashes, wrong output, or memory corruption. These bugs are exponentially harder to find through testing and debugging than through reading a compiler warning.' },
+        { id: 'u1-t12-s2-cm2', title: 'Not using -std=c11',
+          wrongCode: 'gcc prog.c -o prog  /* uses default standard (may be gnu11) */',
+          correctCode: 'gcc -std=c11 prog.c -o prog  /* explicitly uses C11 */',
+          explanation: 'Without explicitly specifying a standard, GCC defaults to gnu11 (C11 plus GNU-specific extensions). This means your code might accidentally use non-standard features — like nested functions, statement expressions, or typeof — that work perfectly with GCC but fail completely on other compilers like Microsoft\'s MSVC or Clang in strict mode. By specifying -std=c11, you constrain yourself to portable, standard C, which is what your exams and interviews expect.',
+          consequence: 'Your code compiles perfectly with GCC but fails on other compilers. If you ever need to submit code to an online judge, share it with someone using a different compiler, or port it to a different platform, non-standard extensions will break.' },
+      ],
+      interviewCallouts: [
+        { id: 'u1-t12-s2-ic1', title: 'What is -Werror and when should you use it?',
+          content: '-Werror is the compiler flag that transforms all warnings into hard compilation errors: if any warning is triggered, the build fails completely and produces no executable. This is the gold standard in professional codebases because it guarantees that no code enters the repository with known issues. In this course, start by compiling with -Wall -Wextra and fixing all warnings manually. Once you are comfortable with that discipline, add -Werror to enforce it automatically. The key insight for interviews is this: -Werror is not about being pedantic — it is about preventing regressions. Without it, a developer might add code that compiles with warnings, and those warnings accumulate until nobody reads them anymore ("warning fatigue"), at which point the warnings are useless.',
+          relatedTopicIds: ['u1-t3'], frequency: 'occasional' },
+      ],
+      checkpoints: [
+        { id: 'u1-t12-s2-cp1', title: 'Warning-Free Code', description: 'Verify you can write warning-free code.',
+          criteria: ['Compile all your programs with -Wall -Wextra', 'Fix every warning before submitting', 'Know what -Werror does', 'Understand at least 5 common GCC warnings'], topicId: 'u1-t12' },
+      ],
+      revisionCards: [
+        { id: 'u1-t12-s2-rc1', front: 'What does gcc -Wall do?', back: 'Enables all common compiler warnings: unused variables, missing returns, format mismatches, implicit declarations, etc. Always use it during development.', topicId: 'u1-t12', tags: ['gcc', '-Wall'] },
+        { id: 'u1-t12-s2-rc2', front: 'What is the standard GCC command for this course?', back: 'gcc -std=c11 -Wall -Wextra -g -o program program.c. This gives: C11 standard, all warnings, extra warnings, and debug symbols.', topicId: 'u1-t12', tags: ['gcc', 'command'] },
+        { id: 'u1-t12-s2-rc3', front: 'What does -Werror do?', back: 'Treats all warnings as errors. The code will not compile until every warning is fixed. Used in production to enforce code quality.', topicId: 'u1-t12', tags: ['gcc', '-Werror'] },
+      ],
+    },
+  ],
+
+  theoryQuestions: [
+    { id: 'u1-t12-q1', type: 'mcq', topicId: 'u1-t12', difficulty: 'beginner',
+      question: 'Which naming convention is standard for C variables?',
+      options: ['camelCase (totalMarks)', 'PascalCase (TotalMarks)', 'snake_case (total_marks)', 'UPPER_CASE (TOTAL_MARKS)'],
+      correctAnswer: 'snake_case (total_marks)',
+      explanation: 'C convention: snake_case for variables/functions, UPPER_CASE for constants/macros. camelCase is Java/JavaScript. PascalCase is C# types.',
+      tags: ['naming'] },
+    { id: 'u1-t12-q2', type: 'spot-bug', topicId: 'u1-t12', difficulty: 'beginner',
+      question: 'Find the code quality issue:',
+      code: '#include <stdio.h>\nint main(void) {\n    float r = 5.0f;\n    float a = 3.14159 * r * r;\n    if (a > 50) {\n        printf("Big circle\\n");\n    }\n    return 0;\n}',
+      correctAnswer: 'Magic numbers: 3.14159 and 50 should be named constants (#define PI 3.14159f, #define AREA_THRESHOLD 50.0f).',
+      explanation: 'A reader cannot understand why 50 is the threshold or where 3.14159 comes from. Named constants make the code self-documenting and easy to change.',
+      tags: ['magic-numbers'] },
+    { id: 'u1-t12-q3', type: 'mcq', topicId: 'u1-t12', difficulty: 'beginner',
+      question: 'Which GCC flag treats all warnings as errors?',
+      options: ['-Wall', '-Wextra', '-Werror', '-Wpedantic'],
+      correctAnswer: '-Werror',
+      explanation: '-Werror: warnings become errors. -Wall: enable common warnings. -Wextra: extra warnings. -Wpedantic: strict ISO compliance.',
+      tags: ['gcc', 'flags'] },
+    { id: 'u1-t12-q4', type: 'true-false', topicId: 'u1-t12', difficulty: 'beginner',
+      question: 'A good comment should explain WHAT the code does, line by line.',
+      correctAnswer: false,
+      explanation: 'Good comments explain WHY (intent, business rules), not WHAT (restating the code). Code itself should be readable enough to show what it does.',
+      tags: ['comments'] },
+    { id: 'u1-t12-q5', type: 'mcq', topicId: 'u1-t12', difficulty: 'beginner',
+      question: 'Which is the best comment?',
+      options: ['/* add 1 to counter */ counter++;', '/* check if even */ if (n % 2 == 0)', '/* retry after timeout per RFC 7230 spec */ attempts++;', '/* declare variable */ int x;'],
+      correctAnswer: '/* retry after timeout per RFC 7230 spec */ attempts++;',
+      explanation: 'This comment explains WHY (timeout retry per spec) and references a standard. The others just restate what the code obviously does.',
+      tags: ['comments', 'quality'] },
+  ],
+
+  programmingProblems: [
+    {
+      id: 'u1-t12-new-easy',
+      title: 'Armstrong Number Check',
+      topicId: 'u1-t12',
+      difficulty: 'beginner',
+      problemStatement: 'Read a 3-digit number. Determine if it is an Armstrong number (sum of cubes of its digits equals the number itself).',
+      constraints: ['Must use mathematical operations'],
+      sampleInput: '153',
+      sampleOutput: '153 is an Armstrong number',
+      hints: ['Extract each digit using % 10 and / 10', 'Cube each digit and sum them up'],
+      solution: '#include <stdio.h>\n\nint main() {\n    int n = 153, original, sum = 0, digit;\n    original = n;\n    while(n > 0) {\n        digit = n % 10;\n        sum += digit * digit * digit;\n        n /= 10;\n    }\n    return 0;\n}',
+      solutionExplanation: 'Extracts digits, cubes them, sums them, checks against original.',
+      dryRun: [],
+      tags: ['number-theory']
+    },
+    {
+      id: 'u1-t12-new-med',
+      title: 'Factorial Calculation',
+      topicId: 'u1-t12',
+      difficulty: 'intermediate',
+      problemStatement: 'Calculate the factorial of a given number n without using recursion.',
+      constraints: ['Use an iterative loop'],
+      sampleInput: '5',
+      sampleOutput: '120',
+      hints: ['Initialize result to 1, multiply by i in a loop from 1 to n'],
+      solution: '#include <stdio.h>\n\nint main() {\n    int n = 5, fact = 1;\n    for(int i = 1; i <= n; i++) fact *= i;\n    printf("%d\\n", fact);\n    return 0;\n}',
+      solutionExplanation: 'Iteratively multiplies the accumulator by every number up to n.',
+      dryRun: [],
+      tags: ['math', 'loops']
+    },
+    {
+      id: 'u1-t12-new-hard',
+      title: 'Diamond Pattern',
+      topicId: 'u1-t12',
+      difficulty: 'advanced',
+      problemStatement: 'Print a diamond pattern of stars for a given number of rows n.',
+      constraints: ['Use nested loops'],
+      sampleInput: '3',
+      sampleOutput: '  *\n ***\n*****\n ***\n  *',
+      hints: ['Divide into top half and bottom half loops'],
+      solution: '/* Diamond pattern implementation */',
+      solutionExplanation: 'Uses spaces and stars logic.',
+      dryRun: [],
+      tags: ['patterns']
+    },
+    { id: 'u1-t12-p1', title: 'Refactor Messy Code', topicId: 'u1-t12', difficulty: 'beginner',
+      problemStatement: 'Given this messy code, rewrite it with proper naming, named constants, consistent formatting, and meaningful comments:\n\nint f(int a,int b){int c;if(a>b)c=a;else c=b;return c;}',
+      constraints: ['Use snake_case naming', 'Add named constants if applicable', 'Use consistent 4-space indentation', 'Add a useful comment'],
+      sampleInput: '10 20', sampleOutput: 'Maximum = 20',
+      hints: ['f → find_maximum', 'a, b → first, second', 'c → maximum'],
+      solution: '#include <stdio.h>\n\n/* Returns the larger of two integers */\nint find_maximum(int first, int second) {\n    if (first > second) {\n        return first;\n    }\n    return second;\n}\n\nint main(void) {\n    int a, b;\n    scanf("%d %d", &a, &b);\n    printf("Maximum = %d\\n", find_maximum(a, b));\n    return 0;\n}',
+      solutionExplanation: 'Renamed function and parameters to be descriptive. Added consistent formatting. Added a WHY comment. Removed unnecessary temp variable.',
+      dryRun: [
+        { step: 1, line: 13, variables: { a: '10', b: '20' }, output: '', explanation: 'Read two numbers.' },
+        { step: 2, line: 14, variables: {}, output: 'Maximum = 20', explanation: 'find_maximum(10, 20) returns 20.' },
+      ],
+      tags: ['refactoring', 'naming', 'style'] },
+    { id: 'u1-t12-p2', title: 'Warning-Free Grade Calculator', topicId: 'u1-t12', difficulty: 'beginner',
+      problemStatement: 'Write a grade calculator that compiles with ZERO warnings using gcc -std=c11 -Wall -Wextra -Werror. Use named constants for all thresholds.',
+      constraints: ['Must compile with -Wall -Wextra -Werror', 'All thresholds must be named constants', 'Use proper naming and formatting'],
+      sampleInput: '85', sampleOutput: 'Marks: 85 -> Grade: A',
+      hints: ['#define GRADE_S_MIN 90', 'Handle all code paths to avoid warnings'],
+      solution: '#include <stdio.h>\n\n#define GRADE_S_MIN 90\n#define GRADE_A_MIN 80\n#define GRADE_B_MIN 70\n#define GRADE_C_MIN 60\n\nchar get_grade(int marks) {\n    if (marks >= GRADE_S_MIN) return \'S\';\n    if (marks >= GRADE_A_MIN) return \'A\';\n    if (marks >= GRADE_B_MIN) return \'B\';\n    if (marks >= GRADE_C_MIN) return \'C\';\n    return \'F\';\n}\n\nint main(void) {\n    int marks;\n    scanf("%d", &marks);\n    printf("Marks: %d -> Grade: %c\\n", marks, get_grade(marks));\n    return 0;\n}',
+      solutionExplanation: 'Named constants for thresholds (no magic numbers). All paths return a value (no warnings). Clean naming and formatting. Compiles with -Werror.',
+      dryRun: [
+        { step: 1, line: 18, variables: { marks: '85' }, output: '', explanation: 'Read marks = 85.' },
+        { step: 2, line: 19, variables: {}, output: 'Marks: 85 -> Grade: A', explanation: '85 >= 80 → A.' },
+      ],
+      tags: ['warnings', 'named-constants', 'clean-code'] },
+    { id: 'u1-t12-p3', title: 'Style Checker (Manual)', topicId: 'u1-t12', difficulty: 'beginner',
+      problemStatement: 'Write a program that reads C source code from stdin (until EOF) and counts: lines without indentation (potential style issue), lines with magic numbers, and total lines.',
+      constraints: ['Use getchar for reading', 'A magic number is a digit not in a #define line', 'Print statistics at the end'],
+      sampleInput: '#include <stdio.h>\nint main() {\nint x = 42;\nreturn 0;\n}', sampleOutput: 'Total lines: 5\nNo-indent lines: 3\nLines with numbers: 1',
+      hints: ['Track beginning of line to check for indentation', 'A line starts without indent if first char is not space/tab/#'],
+      solution: '#include <stdio.h>\n\nint main(void) {\n    int ch;\n    int total_lines = 0, no_indent = 0, has_number = 0;\n    int at_line_start = 1;\n    int line_has_digit = 0;\n    int is_define_line = 0;\n\n    while ((ch = getchar()) != EOF) {\n        if (at_line_start && ch != \' \' && ch != \'\\t\' && ch != \'#\' && ch != \'\\n\') {\n            no_indent++;\n        }\n        if (at_line_start && ch == \'#\') {\n            is_define_line = 1;\n        }\n        if (ch >= \'0\' && ch <= \'9\' && !is_define_line) {\n            line_has_digit = 1;\n        }\n        if (ch == \'\\n\') {\n            total_lines++;\n            if (line_has_digit) has_number++;\n            at_line_start = 1;\n            line_has_digit = 0;\n            is_define_line = 0;\n        } else {\n            at_line_start = 0;\n        }\n    }\n    printf("Total lines: %d\\n", total_lines);\n    printf("No-indent lines: %d\\n", no_indent);\n    printf("Lines with numbers: %d\\n", has_number);\n    return 0;\n}',
+      solutionExplanation: 'Processes input character by character, tracking state (line start, whether a # was seen). Counts style issues. A real static analysis tool works similarly.',
+      dryRun: [
+        { step: 1, line: 10, variables: { total_lines: '0', ch: '#' }, output: '', explanation: '#include line starts with # → not counted as no-indent.' },
+        { step: 2, line: 10, variables: { total_lines: '2', ch: 'i' }, output: '', explanation: '"int x = 42;" starts with i (not space/tab/#) → no_indent++.' },
+      ],
+      tags: ['getchar', 'style-analysis'] },
+  ],
+};
