@@ -10,6 +10,9 @@ import { queueUsingList } from './units/unit2/topics/queue-using-list';
 import { circularQueueArray } from './units/unit2/topics/circular-queue-array';
 import { priorityQueueImpl } from './units/unit2/topics/priority-queue-impl';
 import { queueApplications } from './units/unit2/topics/queue-applications';
+import { dequeStackDll } from './units/unit2/topics/deque-stack-dll';
+import { generalBinaryTree } from './units/unit2/topics/general-binary-tree';
+import { binarySearchTree } from './units/unit2/topics/binary-search-tree';
 import { strings as cStrings } from './units/unit3/topics/strings';
 import { stringManipulation } from './units/unit3/topics/string-manipulation';
 import { commandLineArgs } from './units/unit3/topics/command-line-args';
@@ -55,9 +58,9 @@ export const curriculumMap: Unit[] = [
   {
     id: 'unit-2',
     number: 2,
-    title: 'Queues, Circular Queue & Priority Queue',
+    title: 'Queues, Trees & Binary Search Trees',
     slug: 'unit-2',
-    description: 'Queue ADT using linked lists and circular arrays, Priority Queue with 4 implementations (unordered/ordered × array/list), and applications including the Josephus Problem and CPU scheduling.',
+    description: 'Queue ADT (linked list & circular array), Deque, Priority Queue (4 implementations), Josephus Problem, General & Binary Trees, and Binary Search Trees with recursive operations.',
     hours: 14,
     labIds: ['lab-2'],
     topics: [
@@ -65,6 +68,9 @@ export const curriculumMap: Unit[] = [
       circularQueueArray,
       priorityQueueImpl,
       queueApplications,
+      dequeStackDll,
+      generalBinaryTree,
+      binarySearchTree,
     ],
   },
   {
